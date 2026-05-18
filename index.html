@@ -26,7 +26,6 @@
             box-shadow: 0 8px 32px 0 rgba(31,38,135,0.07); 
         }
         
-        /* ✅ FIX 3: Camera container ใช้ height จริงแทน aspect-ratio */
         .camera-container { 
             position: relative; 
             width: 100%; 
@@ -36,15 +35,15 @@
             overflow: hidden; 
             background-color: #000; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            height: 60vh;         /* ✅ กำหนด height ชัดเจน */
-            min-height: 320px;    /* ✅ minimum height */
-            max-height: 480px;    /* ✅ maximum height */
+            height: 60vh;         
+            min-height: 320px;    
+            max-height: 480px;    
         }
         
         video { 
             width: 100%; 
             height: 100%; 
-            object-fit: cover;    /* ✅ cover เต็มพื้นที่ */
+            object-fit: cover;    
             display: block;
         }
         
@@ -75,7 +74,6 @@
             pointer-events: none; 
         }
         
-        /* ✅ FIX 3: Section layout ใช้ height เต็มจอ */
         .checkin-section {
             width: 100%;
             max-width: 480px;
@@ -121,7 +119,6 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         
-        /* ✅ Page wrapper */
         .page-wrapper {
             min-height: 100vh;
             display: flex;
@@ -141,52 +138,30 @@
 
 <script>
     // !! แก้ไขค่านี้หากเปลี่ยน Apps Script !!
-    const API_URL = "https://script.google.com/macros/s/AKfycbyEjtS-73OSW8E1D6vz_JjlUY3TVRr9KkyOQiadGYRIyFBASL09Z5pc2dON9KFDWo-pEA/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbx6lJt-l8N4i8p5h5g0uR8M2zRjMhVq5Z_h6M2rUeP9H_bZgB2mJzRjMhVq5Z_h6M2r/exec"; // <-- ใส่ URL ใหม่ของคุณที่ Deploy ล่าสุด
 
-    /**
-     * ✅ FIX 1: callAPI ใหม่ — ส่ง POST สำหรับทุก request
-     * Google Apps Script รองรับ no-cors ผ่าน redirect:follow
-     * ข้อมูลรูปภาพ base64 ใหญ่เกิน URL limit จึงต้องใช้ POST body เสมอ
-     */
     async function callAPI(action, data = {}) {
         try {
-            // ✅ ใช้ POST + application/x-www-form-urlencoded
-            // เพื่อหลีกเลี่ยง CORS preflight และส่งข้อมูลใหญ่ได้
             const payload = JSON.stringify({ action, ...data });
-            
             const res = await fetch(API_URL, {
                 method: "POST",
                 redirect: "follow",
-                headers: {
-                    "Content-Type": "text/plain;charset=utf-8",
-                },
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
                 body: payload,
             });
-            
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             return await res.json();
         } catch (err) {
-            // Fallback: ลอง GET สำหรับ action ที่ไม่มีรูป (ข้อมูลเล็ก)
             const hasPhoto = data.facePhotoBase64 || data.envPhotoBase64;
             if (!hasPhoto) {
-                const params = new URLSearchParams({
-                    action: action,
-                    data: encodeURIComponent(JSON.stringify(data))
-                });
-                const res2 = await fetch(`${API_URL}?${params}`, {
-                    method: "GET",
-                    redirect: "follow",
-                });
+                const params = new URLSearchParams({ action: action, data: encodeURIComponent(JSON.stringify(data)) });
+                const res2 = await fetch(`${API_URL}?${params}`, { method: "GET", redirect: "follow" });
                 return res2.json();
             }
             throw err;
         }
     }
 
-    /**
-     * ✅ FIX 2: Resize รูปก่อน encode เพื่อลดขนาด
-     * จากกล้อง HD → 640px wide JPEG 70% ≈ ~50KB แทนที่จะเป็น ~500KB+
-     */
     function captureResized(video, quality = 0.65, maxWidth = 640) {
         const canvas = document.createElement('canvas');
         const scale = Math.min(1, maxWidth / (video.videoWidth || maxWidth));
@@ -198,7 +173,6 @@
 </script>
 
 <!-- ========== MODALS ========== -->
-
 <!-- Alert Modal -->
 <div id="custom-modal" class="modal-overlay">
     <div class="modal-content text-center">
@@ -231,15 +205,9 @@
     <div class="modal-content">
         <h3 class="text-lg font-bold text-gray-800 mb-4">เพิ่มพนักงานใหม่</h3>
         <div class="space-y-3">
-            <input type="text" id="new-emp-id" 
-                   class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500" 
-                   placeholder="รหัสพนักงาน (เช่น 003)">
-            <input type="text" id="new-emp-name" 
-                   class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500" 
-                   placeholder="ชื่อ-นามสกุล">
-            <input type="text" id="new-emp-password" 
-                   class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500" 
-                   placeholder="รหัสผ่านเริ่มต้น">
+            <input type="text" id="new-emp-id" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500" placeholder="รหัสพนักงาน (เช่น 003)">
+            <input type="text" id="new-emp-name" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500" placeholder="ชื่อ-นามสกุล">
+            <input type="text" id="new-emp-password" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500" placeholder="รหัสผ่านเริ่มต้น">
         </div>
         <div class="flex gap-3 mt-5">
             <button onclick="closeAddEmpModal()" class="flex-1 border border-gray-300 text-gray-600 py-3 rounded-xl">ยกเลิก</button>
@@ -248,8 +216,22 @@
     </div>
 </div>
 
-<!-- ========== SECTIONS ========== -->
+<!-- Export Data Modal -->
+<div id="export-modal" class="modal-overlay">
+    <div class="modal-content">
+        <h3 class="text-lg font-bold text-gray-800 mb-4"><i class="fa-solid fa-file-csv text-blue-600 mr-2"></i>ดึงข้อมูลรายเดือน</h3>
+        <p class="text-sm text-gray-500 mb-4">เลือกเดือนที่ต้องการดึงข้อมูลการเช็คอิน (ไฟล์จะถูกดาวน์โหลดเป็น .csv)</p>
+        <input type="month" id="export-month" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500 mb-5">
+        <div class="flex gap-3">
+            <button onclick="closeExportModal()" class="flex-1 border border-gray-300 text-gray-600 py-3 rounded-xl">ยกเลิก</button>
+            <button id="btn-export" onclick="downloadMonthlyData()" class="flex-1 bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition flex justify-center items-center gap-2">
+                <i class="fa-solid fa-download"></i> ดาวน์โหลด
+            </button>
+        </div>
+    </div>
+</div>
 
+<!-- ========== SECTIONS ========== -->
 <!-- 1. Login -->
 <div id="login-section" class="page-wrapper">
     <div class="login-wrapper glass-panel rounded-3xl p-8">
@@ -297,7 +279,7 @@
 <div id="user-menu-section" class="hidden page-wrapper">
     <div class="login-wrapper flex flex-col pt-8">
         <div class="bg-white p-6 rounded-b-3xl shadow-sm mb-6">
-            <div class="flex justify-between items-start">
+            <div class="flex justify-between items-start mb-3">
                 <div>
                     <p class="text-sm text-gray-500 mb-1">ยินดีต้อนรับ</p>
                     <h2 id="user-display-name" class="text-2xl font-bold text-gray-800">พนักงาน</h2>
@@ -313,6 +295,11 @@
                         <i class="fa-solid fa-power-off"></i>
                     </button>
                 </div>
+            </div>
+            <!-- สถานะการเช็คอินวันนี้ -->
+            <div id="today-status-container" class="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-lg">
+                <i class="fa-solid fa-circle-notch fa-spin text-gray-400 text-sm"></i>
+                <span class="text-sm font-medium text-gray-600">กำลังตรวจสอบสถานะ...</span>
             </div>
         </div>
         <div class="px-4 space-y-4">
@@ -353,10 +340,8 @@
 <!-- 3. Step 1: ถ่ายรูปหน้า -->
 <div id="checkin-step1-face" class="hidden">
     <div class="checkin-section">
-        <!-- Header -->
         <div class="flex items-center gap-3 p-4 bg-white shadow-sm">
-            <button onclick="backToUserMenu()" 
-                    class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-600">
+            <button onclick="backToUserMenu()" class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-600">
                 <i class="fa-solid fa-arrow-left"></i>
             </button>
             <div>
@@ -364,35 +349,25 @@
                 <p class="text-xs text-gray-500">กรุณาถ่ายรูปใบหน้าให้ชัดเจน</p>
             </div>
         </div>
-        
-        <!-- Camera area — ✅ FIX: ขยายเต็มพื้นที่ -->
         <div class="flex-1 flex flex-col justify-center px-4 py-4 bg-gray-900">
             <div class="camera-container" style="height: 55vh; max-height: 500px; border-radius: 1.5rem; overflow: hidden;">
-                <video id="face-video" autoplay playsinline muted 
-                       style="width:100%; height:100%; object-fit:cover; display:block;"></video>
+                <video id="face-video" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover; display:block;"></video>
                 <div class="face-guide"></div>
             </div>
         </div>
-        
-        <!-- Button -->
         <div class="p-5 bg-gray-900">
-            <button onclick="captureFaceAndNext()" 
-                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg py-4 rounded-2xl shadow-lg transition flex justify-center items-center gap-3">
+            <button onclick="captureFaceAndNext()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg py-4 rounded-2xl shadow-lg transition flex justify-center items-center gap-3">
                 <i class="fa-solid fa-camera"></i> ถ่ายรูปและไปต่อ
             </button>
         </div>
-        
-        <canvas id="face-canvas" class="hidden"></canvas>
     </div>
 </div>
 
 <!-- 4. Step 2: ถ่ายสถานที่ -->
 <div id="checkin-step2-location" class="hidden">
     <div class="checkin-section">
-        <!-- Header -->
         <div class="flex items-center gap-3 p-4 bg-white shadow-sm">
-            <button onclick="startCheckin(currentCheckType)" 
-                    class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-600">
+            <button onclick="startCheckin(currentCheckType)" class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-600">
                 <i class="fa-solid fa-arrow-left"></i>
             </button>
             <div>
@@ -400,12 +375,9 @@
                 <p class="text-xs text-gray-500" id="current-time-header">รอสักครู่...</p>
             </div>
         </div>
-        
-        <!-- Camera area -->
         <div class="flex-1 flex flex-col justify-center px-4 py-4 bg-gray-900">
             <div style="position:relative; width:100%; height:55vh; max-height:500px; min-height:300px; border-radius:1.5rem; overflow:hidden; background:#000; box-shadow:0 10px 25px rgba(0,0,0,0.3);">
-                <video id="env-video" autoplay playsinline muted 
-                       style="width:100%; height:100%; object-fit:cover; display:block;"></video>
+                <video id="env-video" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover; display:block;"></video>
                 <div class="location-overlay">
                     <div class="flex items-start gap-3">
                         <div class="mt-1 w-8 h-8 bg-red-500/20 rounded-full flex items-center justify-center flex-shrink-0">
@@ -419,16 +391,11 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Button -->
         <div class="p-5 bg-gray-900">
-            <button id="btn-confirm" disabled onclick="captureEnvAndSubmit()" 
-                    class="w-full bg-gray-500 text-white font-bold text-lg py-4 rounded-2xl shadow-lg transition flex justify-center items-center gap-3 opacity-70 cursor-not-allowed">
+            <button id="btn-confirm" disabled onclick="captureEnvAndSubmit()" class="w-full bg-gray-500 text-white font-bold text-lg py-4 rounded-2xl shadow-lg transition flex justify-center items-center gap-3 opacity-70 cursor-not-allowed">
                 <span class="spinner"></span> กำลังค้นหาพิกัด...
             </button>
         </div>
-        
-        <canvas id="env-canvas" class="hidden"></canvas>
     </div>
 </div>
 
@@ -437,19 +404,18 @@
     <div class="login-wrapper flex flex-col pt-8">
         <div class="bg-white p-6 rounded-b-3xl shadow-sm mb-4">
             <div class="flex items-center gap-3">
-                <button onclick="backToUserMenu()" 
-                        class="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-600">
+                <button onclick="backToUserMenu()" class="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-600">
                     <i class="fa-solid fa-arrow-left"></i>
                 </button>
-                <h2 class="text-xl font-bold text-gray-800">แดชบอร์ดของฉัน</h2>
+                <h2 class="text-xl font-bold text-gray-800">สถิติและประวัติ</h2>
             </div>
         </div>
         <div class="px-4 overflow-y-auto pb-6">
-            <div class="bg-blue-600 rounded-2xl p-6 text-white shadow-lg mb-4">
-                <p class="text-blue-200 text-sm mb-1">สถิติการเช็คอิน/เอาท์ (เดือนนี้)</p>
-                <h3 id="month-count" class="text-4xl font-bold">-- <span class="text-lg font-normal">ครั้ง</span></h3>
+            <div class="bg-blue-600 rounded-2xl p-6 text-white shadow-lg mb-4 text-center">
+                <p class="text-blue-200 text-sm mb-1">จำนวนการเช็คอิน/เอาท์ (เดือนนี้)</p>
+                <h3 id="month-count" class="text-5xl font-bold mt-2">-- <span class="text-lg font-normal">ครั้ง</span></h3>
             </div>
-            <h4 class="font-bold text-gray-700 mb-3 px-1">ประวัติล่าสุด</h4>
+            <h4 class="font-bold text-gray-700 mb-3 px-1">ประวัติล่าสุด (ย่อ)</h4>
             <div id="history-container" class="space-y-3">
                 <div class="text-center text-gray-400 py-8">
                     <i class="fa-solid fa-spinner fa-spin text-2xl"></i>
@@ -462,33 +428,41 @@
 
 <!-- 6. Admin Dashboard -->
 <div id="admin-dashboard" class="hidden page-wrapper">
-    <div class="login-wrapper flex flex-col pt-8">
+    <div class="login-wrapper flex flex-col pt-8 pb-10">
         <div class="bg-indigo-600 p-6 rounded-b-3xl shadow-md text-white">
             <div class="flex justify-between items-center mb-4">
                 <div>
                     <h2 class="text-xl font-bold">Admin Dashboard</h2>
                     <p class="text-indigo-200 text-sm">ระบบจัดการข้อมูล</p>
                 </div>
-                <button onclick="logout()" 
-                        class="text-white bg-indigo-500 hover:bg-indigo-700 px-4 py-2 rounded-xl text-sm transition">
+                <button onclick="logout()" class="text-white bg-indigo-500 hover:bg-indigo-700 px-4 py-2 rounded-xl text-sm transition">
                     ออกจากระบบ
                 </button>
             </div>
             <div class="grid grid-cols-2 gap-4 mt-6">
                 <div class="bg-white/10 p-4 rounded-2xl">
                     <p class="text-indigo-100 text-xs mb-1">เช็คอินวันนี้</p>
-                    <p id="admin-today-count" class="text-2xl font-bold">--</p>
+                    <p id="admin-today-count" class="text-2xl font-bold">-- <span class="text-sm font-normal">คน</span></p>
                 </div>
                 <div class="bg-white/10 p-4 rounded-2xl">
                     <p class="text-indigo-100 text-xs mb-1">พนักงานทั้งหมด</p>
-                    <p id="admin-total-emp" class="text-2xl font-bold">--</p>
+                    <p id="admin-total-emp" class="text-2xl font-bold">-- <span class="text-sm font-normal">คน</span></p>
                 </div>
             </div>
         </div>
+        
         <div class="p-6 space-y-4">
+            <!-- แสดงสถิติอำเภอ -->
+            <h3 class="font-bold text-gray-800 text-lg mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-map-location-dot text-indigo-500"></i> สถิติสถานที่วันนี้
+            </h3>
+            <div id="admin-locations-container" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-2 mb-6">
+                <!-- Data will be injected here -->
+                <p class="text-sm text-gray-500 text-center py-2">กำลังโหลด...</p>
+            </div>
+
             <h3 class="font-bold text-gray-800 text-lg mb-2">เมนูการจัดการ</h3>
-            <button onclick="openAddEmployeeModal()" 
-                    class="w-full bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition">
+            <button onclick="openAddEmployeeModal()" class="w-full bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-xl">
                         <i class="fa-solid fa-user-plus"></i>
@@ -500,37 +474,22 @@
                 </div>
                 <i class="fa-solid fa-chevron-right text-gray-300"></i>
             </button>
-            <a href="https://lookerstudio.google.com" target="_blank" 
-               class="w-full bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition block">
+            <button onclick="openExportModal()" class="w-full bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition block">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-xl">
-                        <i class="fa-solid fa-chart-line"></i>
+                        <i class="fa-solid fa-file-csv"></i>
                     </div>
                     <div class="text-left">
-                        <p class="font-bold text-gray-800">Looker Studio</p>
-                        <p class="text-xs text-gray-500">เปิด Dashboard กราฟ</p>
+                        <p class="font-bold text-gray-800">ดึงข้อมูล (Export)</p>
+                        <p class="text-xs text-gray-500">ดาวน์โหลดข้อมูลรายเดือน</p>
                     </div>
                 </div>
-                <i class="fa-solid fa-arrow-up-right-from-square text-gray-300"></i>
-            </a>
-            <a href="https://docs.google.com/spreadsheets/d/1EY6_RoA7XdYoPGzPhI0oqUyg3qqXdN4xB8KnaTR3N7Y" target="_blank" 
-               class="w-full bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition block">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 bg-green-50 text-green-600 rounded-full flex items-center justify-center text-xl">
-                        <i class="fa-solid fa-table"></i>
-                    </div>
-                    <div class="text-left">
-                        <p class="font-bold text-gray-800">Google Sheets</p>
-                        <p class="text-xs text-gray-500">ดูข้อมูลดิบทั้งหมด</p>
-                    </div>
-                </div>
-                <i class="fa-solid fa-arrow-up-right-from-square text-gray-300"></i>
-            </a>
+                <i class="fa-solid fa-download text-gray-300"></i>
+            </button>
         </div>
     </div>
 </div>
 
-<!-- ========== JAVASCRIPT ========== -->
 <script>
 let currentUser = null;
 let currentCheckType = 'in';
@@ -557,6 +516,13 @@ function showAdminLogin() { document.getElementById('admin-modal').classList.add
 function closeAdminModal() { document.getElementById('admin-modal').classList.remove('active'); document.getElementById('admin-password').value = ''; }
 function openAddEmployeeModal() { document.getElementById('add-emp-modal').classList.add('active'); }
 function closeAddEmpModal() { document.getElementById('add-emp-modal').classList.remove('active'); }
+function openExportModal() { 
+    // Set default month to current
+    const now = new Date();
+    document.getElementById('export-month').value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2, '0')}`;
+    document.getElementById('export-modal').classList.add('active'); 
+}
+function closeExportModal() { document.getElementById('export-modal').classList.remove('active'); }
 
 // ====== Navigation ======
 function hideAll() {
@@ -588,6 +554,7 @@ function backToUserMenu() {
     stopCameras(); 
     clearInterval(timeInterval); 
     show('user-menu-section'); 
+    fetchTodayStatus(); // Refresh status when coming back
 }
 
 function goToUserDashboard() { 
@@ -599,35 +566,27 @@ function goToUserDashboard() {
 async function loginWithPassword() {
     const employeeId = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value.trim();
-    if (!employeeId || !password) { 
-        showAlert('แจ้งเตือน', 'กรุณากรอกรหัสพนักงานและรหัสผ่าน', 'error'); 
-        return; 
-    }
+    if (!employeeId || !password) { showAlert('แจ้งเตือน', 'กรุณากรอกรหัสพนักงานและรหัสผ่าน', 'error'); return; }
+    
     const btn = document.getElementById('btn-login');
     btn.innerHTML = '<span class="spinner" style="border-top-color:#666"></span> กำลังตรวจสอบ...'; 
     btn.disabled = true;
+    
     try {
         const res = await callAPI('login_password', { employeeId, password });
         if (res.status === 'success') {
-            currentUser = res.employee;
-            document.getElementById('user-display-name').innerText = currentUser.name;
-            document.getElementById('user-id-display').innerText = 'รหัส: ' + currentUser.id;
-            show('user-menu-section');
+            handleLoginSuccess(res.employee);
         } else { 
             showAlert('ไม่สำเร็จ', res.message || 'รหัสพนักงานหรือรหัสผ่านไม่ถูกต้อง', 'error'); 
         }
-    } catch(e) { 
-        showAlert('ข้อผิดพลาด', 'เชื่อมต่อ API ไม่ได้: ' + e.message, 'error'); 
-    }
+    } catch(e) { showAlert('ข้อผิดพลาด', 'เชื่อมต่อ API ไม่ได้: ' + e.message, 'error'); }
+    
     btn.innerHTML = 'เข้าสู่ระบบด้วยรหัสผ่าน'; 
     btn.disabled = false;
 }
 
 async function loginWithPasskey() {
-    if (!window.PublicKeyCredential) { 
-        showAlert('ไม่รองรับ', 'มือถือนี้ไม่รองรับ Passkey\nกรุณาใช้รหัสผ่านแทน', 'error'); 
-        return; 
-    }
+    if (!window.PublicKeyCredential) { showAlert('ไม่รองรับ', 'มือถือนี้ไม่รองรับ Passkey\nกรุณาใช้รหัสผ่านแทน', 'error'); return; }
     try {
         const credential = await navigator.credentials.get({
             publicKey: { 
@@ -640,10 +599,7 @@ async function loginWithPasskey() {
         const credentialId = btoa(String.fromCharCode(...new Uint8Array(credential.rawId)));
         const res = await callAPI('verify_passkey', { credentialId });
         if (res.status === 'success') {
-            currentUser = res.employee;
-            document.getElementById('user-display-name').innerText = currentUser.name;
-            document.getElementById('user-id-display').innerText = 'รหัส: ' + currentUser.id;
-            show('user-menu-section');
+            handleLoginSuccess(res.employee);
         } else { 
             showAlert('ไม่พบ Passkey', res.message, 'error'); 
         }
@@ -652,37 +608,30 @@ async function loginWithPasskey() {
     }
 }
 
-async function showRegisterPasskey() {
-    if (!window.PublicKeyCredential || !currentUser) return;
+function handleLoginSuccess(employee) {
+    currentUser = employee;
+    document.getElementById('user-display-name').innerText = currentUser.name;
+    document.getElementById('user-id-display').innerText = 'รหัส: ' + currentUser.id;
+    show('user-menu-section');
+    fetchTodayStatus();
+}
+
+async function fetchTodayStatus() {
+    const statusContainer = document.getElementById('today-status-container');
+    statusContainer.className = "inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-lg";
+    statusContainer.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-gray-500 text-sm"></i><span class="text-sm font-medium text-gray-600">ตรวจสอบสถานะ...</span>';
+    
     try {
-        const credential = await navigator.credentials.create({
-            publicKey: {
-                challenge: crypto.getRandomValues(new Uint8Array(32)),
-                rp: { name: "Enterprise Check-in", id: window.location.hostname },
-                user: { 
-                    id: new TextEncoder().encode(currentUser.id), 
-                    name: currentUser.id, 
-                    displayName: currentUser.name 
-                },
-                pubKeyCredParams: [{ alg: -7, type: "public-key" }],
-                authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
-                timeout: 60000,
-            }
-        });
-        const credentialId = btoa(String.fromCharCode(...new Uint8Array(credential.rawId)));
-        const res = await callAPI('register_passkey', { 
-            employeeId: currentUser.id, 
-            credentialId, 
-            publicKey: "stored-on-device", 
-            deviceInfo: navigator.userAgent.substring(0, 100) 
-        });
-        showAlert(
-            res.status === 'success' ? 'สำเร็จ' : 'ข้อผิดพลาด', 
-            res.message, 
-            res.status === 'success' ? 'success' : 'error'
-        );
+        const res = await callAPI('check_today_status', { employeeId: currentUser.id });
+        if (res.status === 'success' && res.checkedInToday) {
+            statusContainer.className = "inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 rounded-lg";
+            statusContainer.innerHTML = '<i class="fa-solid fa-check-circle text-green-600 text-sm"></i><span class="text-sm font-medium text-green-700">วันนี้เช็คอินแล้ว</span>';
+        } else {
+            statusContainer.className = "inline-flex items-center gap-2 px-3 py-1.5 bg-orange-100 rounded-lg";
+            statusContainer.innerHTML = '<i class="fa-solid fa-clock text-orange-500 text-sm"></i><span class="text-sm font-medium text-orange-700">วันนี้ยังไม่ได้เช็คอิน</span>';
+        }
     } catch(e) {
-        if (e.name !== 'NotAllowedError') showAlert('ข้อผิดพลาด', e.message, 'error');
+        statusContainer.innerHTML = '<span class="text-sm text-gray-500">ตรวจสอบสถานะไม่ได้</span>';
     }
 }
 
@@ -694,32 +643,83 @@ async function loginAsAdmin() {
     try {
         const res = await callAPI('get_admin_summary', { adminPassword: pw });
         if (res.status === 'success') {
-            document.getElementById('admin-today-count').innerText = res.summary.todayCheckinCount + ' คน';
-            document.getElementById('admin-total-emp').innerText = res.summary.totalEmployees + ' คน';
+            document.getElementById('admin-today-count').innerText = res.summary.todayCheckinCount;
+            document.getElementById('admin-total-emp').innerText = res.summary.totalEmployees;
+            
+            // แสดงข้อมูลอำเภอ
+            const locContainer = document.getElementById('admin-locations-container');
+            const locs = res.summary.locations;
+            if (Object.keys(locs).length === 0) {
+                locContainer.innerHTML = '<p class="text-sm text-gray-500 text-center py-2">ยังไม่มีคนเช็คอินวันนี้</p>';
+            } else {
+                let html = '';
+                for (const [amphoe, count] of Object.entries(locs)) {
+                    html += `
+                        <div class="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
+                            <span class="text-sm text-gray-700 font-medium">${amphoe}</span>
+                            <span class="text-sm bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-md font-bold">${count} คน</span>
+                        </div>
+                    `;
+                }
+                locContainer.innerHTML = html;
+            }
             show('admin-dashboard');
         } else { 
             showAlert('ไม่สำเร็จ', res.message, 'error'); 
         }
-    } catch(e) { 
-        showAlert('ข้อผิดพลาด', e.message, 'error'); 
-    }
+    } catch(e) { showAlert('ข้อผิดพลาด', e.message, 'error'); }
 }
 
 async function submitAddEmployee() {
     const id = document.getElementById('new-emp-id').value.trim();
     const name = document.getElementById('new-emp-name').value.trim();
     const password = document.getElementById('new-emp-password').value.trim();
-    if (!id || !name || !password) { 
-        showAlert('แจ้งเตือน', 'กรุณากรอกข้อมูลให้ครบ', 'error'); 
-        return; 
-    }
+    if (!id || !name || !password) { showAlert('แจ้งเตือน', 'กรุณากรอกข้อมูลให้ครบ', 'error'); return; }
     const res = await callAPI('add_employee', { adminPassword: adminPw, employeeId: id, name, password });
     closeAddEmpModal();
-    showAlert(
-        res.status === 'success' ? 'สำเร็จ' : 'ข้อผิดพลาด', 
-        res.message, 
-        res.status === 'success' ? 'success' : 'error'
-    );
+    showAlert(res.status === 'success' ? 'สำเร็จ' : 'ข้อผิดพลาด', res.message, res.status === 'success' ? 'success' : 'error');
+}
+
+async function downloadMonthlyData() {
+    const monthVal = document.getElementById('export-month').value;
+    if (!monthVal) return;
+    
+    const [year, month] = monthVal.split('-');
+    const btn = document.getElementById('btn-export');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังดึงข้อมูล...';
+    
+    try {
+        const res = await callAPI('export_monthly', { adminPassword: adminPw, month: month, year: year });
+        if (res.status === 'success') {
+            if (res.data.length <= 1) {
+                showAlert('แจ้งเตือน', 'ไม่มีข้อมูลการเช็คอินในเดือนที่เลือก', 'info');
+            } else {
+                // แปลง 2D Array เป็น CSV
+                const csvContent = "\uFEFF" + res.data.map(e => e.map(cell => {
+                    let c = String(cell || "").replace(/"/g, '""'); // escape quotes
+                    return /[",\n]/.test(c) ? `"${c}"` : c;
+                }).join(",")).join("\n");
+                
+                // สร้างไฟล์ดาวน์โหลด
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.setAttribute("href", url);
+                link.setAttribute("download", `CheckinLog_${year}_${month}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                closeExportModal();
+            }
+        } else {
+            showAlert('ไม่สำเร็จ', res.message, 'error');
+        }
+    } catch(e) {
+        showAlert('ข้อผิดพลาด', e.message, 'error');
+    }
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-download"></i> ดาวน์โหลด';
 }
 
 // ====== Check-in flow ======
@@ -732,36 +732,24 @@ async function startCheckin(type) {
     
     stopCameras();
     show('checkin-step1-face');
-    
-    // ✅ รอให้ DOM render ก่อนเปิดกล้อง
     await new Promise(r => setTimeout(r, 100));
     
     try {
         faceStream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }, 
-            audio: false
+            video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false
         });
         const video = document.getElementById('face-video');
         video.srcObject = faceStream;
-        // ✅ รอให้ video พร้อมก่อน
         await new Promise(r => { video.onloadedmetadata = r; });
         video.play();
-    } catch(e) { 
-        showAlert('ข้อผิดพลาด', 'ไม่สามารถเปิดกล้องได้: ' + e.message, 'error'); 
-        backToUserMenu(); 
-    }
+    } catch(e) { showAlert('ข้อผิดพลาด', 'ไม่สามารถเปิดกล้องได้: ' + e.message, 'error'); backToUserMenu(); }
 }
 
 function captureFaceAndNext() {
     const video = document.getElementById('face-video');
-    if (!video.videoWidth) {
-        showAlert('แจ้งเตือน', 'กล้องยังไม่พร้อม กรุณารอสักครู่', 'info');
-        return;
-    }
-    // ✅ FIX 2: ใช้ captureResized แทน canvas โดยตรง
+    if (!video.videoWidth) { showAlert('แจ้งเตือน', 'กล้องยังไม่พร้อม กรุณารอสักครู่', 'info'); return; }
     facePhotoBase64 = captureResized(video, 0.7, 640);
-    stopStream(faceStream);
-    faceStream = null;
+    stopStream(faceStream); faceStream = null;
     startStep2();
 }
 
@@ -775,24 +763,19 @@ async function startStep2() {
     btn.innerHTML = '<span class="spinner"></span> กำลังค้นหาพิกัด...';
     
     document.getElementById('location-text').innerText = 'กำลังค้นหาพิกัด...';
-    updateTime(); 
-    clearInterval(timeInterval);
-    timeInterval = setInterval(updateTime, 1000);
+    updateTime(); clearInterval(timeInterval); timeInterval = setInterval(updateTime, 1000);
     
-    // ✅ รอให้ DOM render ก่อนเปิดกล้อง
     await new Promise(r => setTimeout(r, 100));
     
     try {
         envStream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } }, 
-            audio: false
+            video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false
         });
         const video = document.getElementById('env-video');
         video.srcObject = envStream;
         await new Promise(r => { video.onloadedmetadata = r; });
         video.play();
     } catch(e) { 
-        // ลองกล้องหน้าถ้ากล้องหลังไม่ได้
         try {
             envStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
             const video = document.getElementById('env-video');
@@ -800,12 +783,9 @@ async function startStep2() {
             await new Promise(r => { video.onloadedmetadata = r; });
             video.play();
         } catch(e2) {
-            showAlert('ข้อผิดพลาด', 'เปิดกล้องไม่ได้: ' + e2.message, 'error'); 
-            backToUserMenu(); 
-            return;
+            showAlert('ข้อผิดพลาด', 'เปิดกล้องไม่ได้: ' + e2.message, 'error'); backToUserMenu(); return;
         }
     }
-    
     getGPS();
 }
 
@@ -824,39 +804,27 @@ function getGPS() {
     navigator.geolocation.getCurrentPosition(
         async (pos) => {
             if (done) return; done = true; clearTimeout(timer);
-            currentLat = pos.coords.latitude; 
-            currentLng = pos.coords.longitude;
+            currentLat = pos.coords.latitude; currentLng = pos.coords.longitude;
             try {
-                const r = await fetch(
-                    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${currentLat}&lon=${currentLng}&accept-language=th`,
-                    { headers: { 'User-Agent': 'EnterpriseCheckin/1.0' } }
-                );
+                const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${currentLat}&lon=${currentLng}&accept-language=th`, { headers: { 'User-Agent': 'EnterpriseCheckin/1.0' } });
                 const d = await r.json();
                 if (d.address) {
                     const sub = d.address.suburb || d.address.village || d.address.neighbourhood || "";
                     const dist = d.address.city_district || d.address.county || d.address.town || "";
                     const prov = d.address.state || "";
-                    currentAddress = [sub ? "ต." + sub : "", dist ? "อ." + dist : "", prov ? "จ." + prov : ""].filter(Boolean).join(" ") 
-                                     || d.display_name?.split(',').slice(0,3).join(',')
-                                     || `${currentLat.toFixed(5)}, ${currentLng.toFixed(5)}`;
-                } else { 
-                    currentAddress = `${currentLat.toFixed(5)}, ${currentLng.toFixed(5)}`; 
-                }
-            } catch { 
-                currentAddress = `${currentLat.toFixed(5)}, ${currentLng.toFixed(5)}`; 
-            }
+                    currentAddress = [sub ? "ต." + sub : "", dist ? "อ." + dist : "", prov ? "จ." + prov : ""].filter(Boolean).join(" ") || d.display_name?.split(',').slice(0,3).join(',') || `${currentLat.toFixed(5)}, ${currentLng.toFixed(5)}`;
+                } else { currentAddress = `${currentLat.toFixed(5)}, ${currentLng.toFixed(5)}`; }
+            } catch { currentAddress = `${currentLat.toFixed(5)}, ${currentLng.toFixed(5)}`; }
             document.getElementById('location-text').innerText = currentAddress || "พบพิกัดแล้ว";
             enableConfirmBtn();
         }, 
-        fallback, 
-        { enableHighAccuracy: true, timeout: 9000, maximumAge: 0 }
+        fallback, { enableHighAccuracy: true, timeout: 9000, maximumAge: 0 }
     );
 }
 
 function enableConfirmBtn() {
     const btn = document.getElementById('btn-confirm');
-    btn.disabled = false;
-    btn.style.cursor = 'pointer';
+    btn.disabled = false; btn.style.cursor = 'pointer';
     if (currentCheckType === 'in') {
         btn.className = "w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-lg py-4 rounded-2xl shadow-lg transition flex justify-center items-center gap-3";
         btn.innerHTML = '<i class="fa-solid fa-camera text-xl"></i> ยืนยันการเช็คอิน';
@@ -868,75 +836,64 @@ function enableConfirmBtn() {
 
 async function captureEnvAndSubmit() {
     const btn = document.getElementById('btn-confirm');
-    btn.disabled = true; 
-    btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
+    btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
     
     const video = document.getElementById('env-video');
-    // ✅ FIX 2: Resize รูปสถานที่ด้วย
     const envPhotoBase64 = captureResized(video, 0.65, 640);
     
-    stopCameras(); 
-    clearInterval(timeInterval);
+    stopCameras(); clearInterval(timeInterval);
     
     try {
         const res = await callAPI('checkin', {
-            employeeId: currentUser.id, 
-            type: currentCheckType,
-            address: currentAddress, 
-            latitude: currentLat, 
-            longitude: currentLng,
-            facePhotoBase64,        // ✅ ส่งผ่าน POST body
-            envPhotoBase64,         // ✅ ส่งผ่าน POST body
-            timestamp: new Date().toISOString()
+            employeeId: currentUser.id, type: currentCheckType, address: currentAddress, 
+            latitude: currentLat, longitude: currentLng, facePhotoBase64, envPhotoBase64, timestamp: new Date().toISOString()
         });
         const label = currentCheckType === 'in' ? 'เช็คอิน' : 'เช็คเอาท์';
         if (res.status === 'success') {
-            showAlert(
-                `${label}สำเร็จ!`,
-                `ชื่อ: ${currentUser.name}\nตำแหน่ง: ${currentAddress}\nเวลา: ${new Date().toLocaleTimeString('th-TH')}`,
-                'success'
-            );
+            showAlert(`${label}สำเร็จ!`, `ชื่อ: ${currentUser.name}\nตำแหน่ง: ${currentAddress}\nเวลา: ${new Date().toLocaleTimeString('th-TH')}`, 'success');
         } else {
             showAlert('ข้อผิดพลาด', res.message || 'บันทึกไม่สำเร็จ', 'error');
         }
-    } catch(e) { 
-        showAlert('ข้อผิดพลาด', 'บันทึกไม่สำเร็จ: ' + e.message, 'error'); 
-    }
+    } catch(e) { showAlert('ข้อผิดพลาด', 'บันทึกไม่สำเร็จ: ' + e.message, 'error'); }
     backToUserMenu();
 }
 
 // ====== History ======
 async function loadHistory() {
-    document.getElementById('history-container').innerHTML = 
-        '<div class="text-center text-gray-400 py-8"><i class="fa-solid fa-spinner fa-spin text-2xl"></i><p class="mt-2 text-sm">กำลังโหลด...</p></div>';
+    document.getElementById('history-container').innerHTML = '<div class="text-center text-gray-400 py-8"><i class="fa-solid fa-spinner fa-spin text-2xl"></i><p class="mt-2 text-sm">กำลังโหลด...</p></div>';
     try {
         const res = await callAPI('get_history', { employeeId: currentUser.id, limit: 15 });
         if (res.status !== 'success') throw new Error(res.message);
         document.getElementById('month-count').innerHTML = `${res.monthCount} <span class="text-lg font-normal">ครั้ง</span>`;
         const container = document.getElementById('history-container');
         if (!res.history || !res.history.length) { 
-            container.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">ยังไม่มีประวัติ</p>'; 
-            return; 
+            container.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">ยังไม่มีประวัติ</p>'; return; 
         }
+        
         container.innerHTML = res.history.map(h => {
             const isIn = h.type === 'in';
+            // พยายามตัดข้อความ Address ให้เหลือแค่ ต. อ. จ. (ถ้าที่อยู่มีรูปแบบนี้) 
+            // หากรูปแบบเป็นอย่างอื่น จะแสดงตามปกติแต่จำกัดความยาวเพื่อความสวยงาม
+            let shortAddress = h.address || '';
+            const tambonIndex = shortAddress.indexOf('ต.');
+            if (tambonIndex !== -1) {
+                shortAddress = shortAddress.substring(tambonIndex);
+            }
+            
             return `<div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 ${isIn?'border-l-emerald-500':'border-l-orange-500'} flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 ${isIn?'bg-emerald-100 text-emerald-600':'bg-orange-100 text-orange-600'} rounded-full flex items-center justify-center">
+                <div class="flex items-center gap-3 overflow-hidden">
+                    <div class="w-10 h-10 ${isIn?'bg-emerald-100 text-emerald-600':'bg-orange-100 text-orange-600'} rounded-full flex items-center justify-center shrink-0">
                         <i class="fa-solid ${isIn?'fa-arrow-right-to-bracket':'fa-arrow-right-from-bracket'}"></i>
                     </div>
-                    <div>
+                    <div class="min-w-0">
                         <p class="font-bold text-sm text-gray-800">${isIn?'เช็คอิน':'เช็คเอาท์'} — ${h.date || ''}</p>
-                        <p class="text-xs text-gray-500">${h.address || ''}</p>
+                        <p class="text-xs text-gray-500 truncate" title="${h.address}">${shortAddress}</p>
                     </div>
                 </div>
-                <span class="text-sm font-medium text-gray-600 flex-shrink-0 ml-2">${h.time || ''}</span>
+                <span class="text-sm font-bold ${isIn?'text-emerald-600':'text-orange-600'} flex-shrink-0 ml-2">${h.time || ''}</span>
             </div>`;
         }).join('');
-    } catch(e) { 
-        document.getElementById('history-container').innerHTML = 
-            `<p class="text-center text-red-400 py-8 text-sm">โหลดไม่สำเร็จ: ${e.message}</p>`; 
-    }
+    } catch(e) { document.getElementById('history-container').innerHTML = `<p class="text-center text-red-400 py-8 text-sm">โหลดไม่สำเร็จ: ${e.message}</p>`; }
 }
 
 // ====== Utils ======
@@ -944,27 +901,14 @@ function updateTime() {
     const now = new Date();
     const t = now.toLocaleTimeString('th-TH');
     const d = now.toLocaleDateString('th-TH', { year:'numeric', month:'short', day:'numeric' });
-    const hdr = document.getElementById('current-time-header'); 
-    if (hdr) hdr.innerText = `${d} | ${t}`;
-    const dt = document.getElementById('datetime-text'); 
-    if (dt) dt.innerText = `${d}  ${t}`;
+    const hdr = document.getElementById('current-time-header'); if (hdr) hdr.innerText = `${d} | ${t}`;
+    const dt = document.getElementById('datetime-text'); if (dt) dt.innerText = `${d}  ${t}`;
 }
-
-function stopStream(s) { 
-    if (s) s.getTracks().forEach(t => t.stop()); 
-}
-
+function stopStream(s) { if (s) s.getTracks().forEach(t => t.stop()); }
 function stopCameras() { 
-    stopStream(envStream); envStream = null; 
-    stopStream(faceStream); faceStream = null;
-    // ✅ clear video src
-    ['face-video','env-video'].forEach(id => {
-        const v = document.getElementById(id);
-        if (v) { v.srcObject = null; }
-    });
+    stopStream(envStream); envStream = null; stopStream(faceStream); faceStream = null;
+    ['face-video','env-video'].forEach(id => { const v = document.getElementById(id); if (v) v.srcObject = null; });
 }
-
-// ====== Init ======
 window.addEventListener('load', () => {
     if (!window.PublicKeyCredential) {
         document.getElementById('btn-passkey').style.display = 'none';
