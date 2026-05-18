@@ -8,41 +8,198 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Prompt', sans-serif; background-color: #f3f4f6; }
-        .glass-panel { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 8px 32px 0 rgba(31,38,135,0.07); }
-        .camera-container { position: relative; width: 100%; max-width: 400px; margin: 0 auto; border-radius: 1.5rem; overflow: hidden; background-color: #000; box-shadow: 0 10px 25px rgba(0,0,0,0.15); aspect-ratio: 3/4; }
-        video { width: 100%; height: 100%; object-fit: cover; }
-        .location-overlay { position: absolute; bottom: 12px; left: 12px; right: 12px; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); color: white; padding: 12px 16px; border-radius: 1rem; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); }
-        .face-guide { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 200px; height: 250px; border: 2px dashed rgba(255,255,255,0.6); border-radius: 100px; box-shadow: 0 0 0 2000px rgba(0,0,0,0.4); pointer-events: none; }
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 50; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        
+        * { box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Prompt', sans-serif; 
+            background-color: #f3f4f6;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .glass-panel { 
+            background: rgba(255,255,255,0.95); 
+            backdrop-filter: blur(10px); 
+            border: 1px solid rgba(255,255,255,0.2); 
+            box-shadow: 0 8px 32px 0 rgba(31,38,135,0.07); 
+        }
+        
+        /* ✅ FIX 3: Camera container ใช้ height จริงแทน aspect-ratio */
+        .camera-container { 
+            position: relative; 
+            width: 100%; 
+            max-width: 400px; 
+            margin: 0 auto; 
+            border-radius: 1.5rem; 
+            overflow: hidden; 
+            background-color: #000; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            height: 60vh;         /* ✅ กำหนด height ชัดเจน */
+            min-height: 320px;    /* ✅ minimum height */
+            max-height: 480px;    /* ✅ maximum height */
+        }
+        
+        video { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover;    /* ✅ cover เต็มพื้นที่ */
+            display: block;
+        }
+        
+        .location-overlay { 
+            position: absolute; 
+            bottom: 12px; 
+            left: 12px; 
+            right: 12px; 
+            background: rgba(0,0,0,0.65); 
+            backdrop-filter: blur(4px); 
+            color: white; 
+            padding: 12px 16px; 
+            border-radius: 1rem; 
+            font-size: 0.85rem; 
+            border: 1px solid rgba(255,255,255,0.1); 
+        }
+        
+        .face-guide { 
+            position: absolute; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%,-50%); 
+            width: 180px; 
+            height: 220px; 
+            border: 2px dashed rgba(255,255,255,0.7); 
+            border-radius: 100px; 
+            box-shadow: 0 0 0 2000px rgba(0,0,0,0.35); 
+            pointer-events: none; 
+        }
+        
+        /* ✅ FIX 3: Section layout ใช้ height เต็มจอ */
+        .checkin-section {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .modal-overlay { 
+            position: fixed; 
+            top: 0; left: 0; right: 0; bottom: 0; 
+            background: rgba(0,0,0,0.5); 
+            backdrop-filter: blur(4px); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            z-index: 50; 
+            opacity: 0; 
+            pointer-events: none; 
+            transition: opacity 0.3s ease; 
+        }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
-        .modal-content { background: white; padding: 2rem; border-radius: 1.5rem; max-width: 90%; width: 400px; transform: scale(0.9); transition: transform 0.3s ease; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .modal-content { 
+            background: white; 
+            padding: 2rem; 
+            border-radius: 1.5rem; 
+            max-width: 90%; 
+            width: 400px; 
+            transform: scale(0.9); 
+            transition: transform 0.3s ease; 
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); 
+        }
         .modal-overlay.active .modal-content { transform: scale(1); }
-        .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        
+        .spinner { 
+            display: inline-block; 
+            width: 20px; height: 20px; 
+            border: 3px solid rgba(255,255,255,0.3); 
+            border-top-color: white; 
+            border-radius: 50%; 
+            animation: spin 0.8s linear infinite; 
+        }
         @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* ✅ Page wrapper */
+        .page-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 1rem;
+        }
+        
+        .login-wrapper {
+            width: 100%;
+            max-width: 28rem;
+            margin: auto;
+        }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
+<body>
 
 <script>
     // !! แก้ไขค่านี้หากเปลี่ยน Apps Script !!
     const API_URL = "https://script.google.com/macros/s/AKfycbyEjtS-73OSW8E1D6vz_JjlUY3TVRr9KkyOQiadGYRIyFBASL09Z5pc2dON9KFDWo-pEA/exec";
 
-    // ส่งข้อมูลผ่าน GET แทน POST เพื่อหลีกเลี่ยง CORS
+    /**
+     * ✅ FIX 1: callAPI ใหม่ — ส่ง POST สำหรับทุก request
+     * Google Apps Script รองรับ no-cors ผ่าน redirect:follow
+     * ข้อมูลรูปภาพ base64 ใหญ่เกิน URL limit จึงต้องใช้ POST body เสมอ
+     */
     async function callAPI(action, data = {}) {
-        const params = new URLSearchParams({
-            action: action,
-            data: encodeURIComponent(JSON.stringify(data))
-        });
-        const res = await fetch(`${API_URL}?${params}`, {
-            method: "GET",
-            redirect: "follow",
-        });
-        return res.json();
+        try {
+            // ✅ ใช้ POST + application/x-www-form-urlencoded
+            // เพื่อหลีกเลี่ยง CORS preflight และส่งข้อมูลใหญ่ได้
+            const payload = JSON.stringify({ action, ...data });
+            
+            const res = await fetch(API_URL, {
+                method: "POST",
+                redirect: "follow",
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8",
+                },
+                body: payload,
+            });
+            
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return await res.json();
+        } catch (err) {
+            // Fallback: ลอง GET สำหรับ action ที่ไม่มีรูป (ข้อมูลเล็ก)
+            const hasPhoto = data.facePhotoBase64 || data.envPhotoBase64;
+            if (!hasPhoto) {
+                const params = new URLSearchParams({
+                    action: action,
+                    data: encodeURIComponent(JSON.stringify(data))
+                });
+                const res2 = await fetch(`${API_URL}?${params}`, {
+                    method: "GET",
+                    redirect: "follow",
+                });
+                return res2.json();
+            }
+            throw err;
+        }
+    }
+
+    /**
+     * ✅ FIX 2: Resize รูปก่อน encode เพื่อลดขนาด
+     * จากกล้อง HD → 640px wide JPEG 70% ≈ ~50KB แทนที่จะเป็น ~500KB+
+     */
+    function captureResized(video, quality = 0.65, maxWidth = 640) {
+        const canvas = document.createElement('canvas');
+        const scale = Math.min(1, maxWidth / (video.videoWidth || maxWidth));
+        canvas.width = Math.round((video.videoWidth || maxWidth) * scale);
+        canvas.height = Math.round((video.videoHeight || 480) * scale);
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        return canvas.toDataURL('image/jpeg', quality);
     }
 </script>
 
-<!-- Modal -->
+<!-- ========== MODALS ========== -->
+
+<!-- Alert Modal -->
 <div id="custom-modal" class="modal-overlay">
     <div class="modal-content text-center">
         <div id="modal-icon" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"></div>
@@ -55,8 +212,13 @@
 <!-- Admin Login Modal -->
 <div id="admin-modal" class="modal-overlay">
     <div class="modal-content">
-        <h3 class="text-xl font-bold text-gray-800 mb-4 text-center"><i class="fa-solid fa-shield-halved text-indigo-600 mr-2"></i>Admin Login</h3>
-        <input type="password" id="admin-password" class="w-full px-4 py-3 rounded-xl border border-gray-200 mb-4 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="รหัส Admin">
+        <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">
+            <i class="fa-solid fa-shield-halved text-indigo-600 mr-2"></i>Admin Login
+        </h3>
+        <input type="password" id="admin-password" 
+               class="w-full px-4 py-3 rounded-xl border border-gray-200 mb-4 focus:ring-2 focus:ring-indigo-500 outline-none" 
+               placeholder="รหัส Admin"
+               onkeydown="if(event.key==='Enter') loginAsAdmin()">
         <div class="flex gap-3">
             <button onclick="closeAdminModal()" class="flex-1 border border-gray-300 text-gray-600 py-3 rounded-xl">ยกเลิก</button>
             <button onclick="loginAsAdmin()" class="flex-1 bg-indigo-600 text-white py-3 rounded-xl hover:bg-indigo-700 transition">เข้าสู่ระบบ</button>
@@ -69,9 +231,15 @@
     <div class="modal-content">
         <h3 class="text-lg font-bold text-gray-800 mb-4">เพิ่มพนักงานใหม่</h3>
         <div class="space-y-3">
-            <input type="text" id="new-emp-id" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500" placeholder="รหัสพนักงาน (เช่น 003)">
-            <input type="text" id="new-emp-name" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500" placeholder="ชื่อ-นามสกุล">
-            <input type="text" id="new-emp-password" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500" placeholder="รหัสผ่านเริ่มต้น">
+            <input type="text" id="new-emp-id" 
+                   class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500" 
+                   placeholder="รหัสพนักงาน (เช่น 003)">
+            <input type="text" id="new-emp-name" 
+                   class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500" 
+                   placeholder="ชื่อ-นามสกุล">
+            <input type="text" id="new-emp-password" 
+                   class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500" 
+                   placeholder="รหัสผ่านเริ่มต้น">
         </div>
         <div class="flex gap-3 mt-5">
             <button onclick="closeAddEmpModal()" class="flex-1 border border-gray-300 text-gray-600 py-3 rounded-xl">ยกเลิก</button>
@@ -80,175 +248,289 @@
     </div>
 </div>
 
+<!-- ========== SECTIONS ========== -->
+
 <!-- 1. Login -->
-<div id="login-section" class="w-full max-w-md glass-panel rounded-3xl p-8 mx-auto">
-    <div class="text-center mb-8">
-        <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg transform rotate-3">
-            <i class="fa-solid fa-fingerprint text-white text-4xl transform -rotate-3"></i>
+<div id="login-section" class="page-wrapper">
+    <div class="login-wrapper glass-panel rounded-3xl p-8">
+        <div class="text-center mb-8">
+            <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg transform rotate-3">
+                <i class="fa-solid fa-fingerprint text-white text-4xl transform -rotate-3"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-800">เข้าสู่ระบบ</h1>
+            <p class="text-gray-500 text-sm mt-1">Check-in System</p>
         </div>
-        <h1 class="text-2xl font-bold text-gray-800">เข้าสู่ระบบ</h1>
-        <p class="text-gray-500 text-sm mt-1">Check-in System</p>
-    </div>
-    <div class="space-y-5">
-        <button onclick="loginWithPasskey()" id="btn-passkey" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-4 rounded-xl transition shadow-md flex items-center justify-center gap-3">
-            <i class="fa-solid fa-face-viewfinder text-xl"></i> Face ID / ลายนิ้วมือ
-        </button>
-        <p id="passkey-hint" class="text-center text-xs text-gray-400 -mt-2">ต้องลงทะเบียนครั้งแรกด้วยรหัสผ่านก่อน</p>
-        <div class="relative flex items-center py-2">
-            <div class="flex-grow border-t border-gray-200"></div>
-            <span class="flex-shrink-0 mx-4 text-gray-400 text-xs">หรือเข้าด้วยรหัสผ่าน</span>
-            <div class="flex-grow border-t border-gray-200"></div>
-        </div>
-        <input type="text" id="username" class="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="รหัสพนักงาน">
-        <input type="password" id="password" class="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="รหัสผ่าน">
-        <button onclick="loginWithPassword()" id="btn-login" class="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium py-3.5 rounded-xl transition shadow-sm">
-            เข้าสู่ระบบด้วยรหัสผ่าน
-        </button>
-        <div class="pt-4 border-t border-gray-100 text-center">
-            <button onclick="showAdminLogin()" class="text-sm font-medium text-indigo-600 hover:text-indigo-800 flex items-center justify-center gap-2 mx-auto">
-                <i class="fa-solid fa-user-shield"></i> เข้าสู่ระบบสำหรับผู้ดูแล
+        <div class="space-y-5">
+            <button onclick="loginWithPasskey()" id="btn-passkey" 
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-4 rounded-xl transition shadow-md flex items-center justify-center gap-3">
+                <i class="fa-solid fa-face-viewfinder text-xl"></i> Face ID / ลายนิ้วมือ
             </button>
+            <p id="passkey-hint" class="text-center text-xs text-gray-400 -mt-2">ต้องลงทะเบียนครั้งแรกด้วยรหัสผ่านก่อน</p>
+            <div class="relative flex items-center py-2">
+                <div class="flex-grow border-t border-gray-200"></div>
+                <span class="flex-shrink-0 mx-4 text-gray-400 text-xs">หรือเข้าด้วยรหัสผ่าน</span>
+                <div class="flex-grow border-t border-gray-200"></div>
+            </div>
+            <input type="text" id="username" 
+                   class="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition" 
+                   placeholder="รหัสพนักงาน"
+                   onkeydown="if(event.key==='Enter') document.getElementById('password').focus()">
+            <input type="password" id="password" 
+                   class="w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition" 
+                   placeholder="รหัสผ่าน"
+                   onkeydown="if(event.key==='Enter') loginWithPassword()">
+            <button onclick="loginWithPassword()" id="btn-login" 
+                    class="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium py-3.5 rounded-xl transition shadow-sm">
+                เข้าสู่ระบบด้วยรหัสผ่าน
+            </button>
+            <div class="pt-4 border-t border-gray-100 text-center">
+                <button onclick="showAdminLogin()" 
+                        class="text-sm font-medium text-indigo-600 hover:text-indigo-800 flex items-center justify-center gap-2 mx-auto">
+                    <i class="fa-solid fa-user-shield"></i> เข้าสู่ระบบสำหรับผู้ดูแล
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- 2. User Menu -->
-<div id="user-menu-section" class="hidden w-full max-w-md flex flex-col mx-auto">
-    <div class="bg-white p-6 rounded-b-3xl shadow-sm mb-6 mt-8">
-        <div class="flex justify-between items-start">
-            <div>
-                <p class="text-sm text-gray-500 mb-1">ยินดีต้อนรับ</p>
-                <h2 id="user-display-name" class="text-2xl font-bold text-gray-800">พนักงาน</h2>
-                <p id="user-id-display" class="text-xs text-gray-400 mt-1"></p>
-            </div>
-            <div class="flex gap-2">
-                <button onclick="showRegisterPasskey()" title="ลงทะเบียน Face ID" class="w-10 h-10 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center hover:bg-blue-100 transition">
-                    <i class="fa-solid fa-face-smile"></i>
-                </button>
-                <button onclick="logout()" class="w-10 h-10 bg-red-50 text-red-500 rounded-full flex items-center justify-center hover:bg-red-100 transition">
-                    <i class="fa-solid fa-power-off"></i>
-                </button>
+<div id="user-menu-section" class="hidden page-wrapper">
+    <div class="login-wrapper flex flex-col pt-8">
+        <div class="bg-white p-6 rounded-b-3xl shadow-sm mb-6">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-sm text-gray-500 mb-1">ยินดีต้อนรับ</p>
+                    <h2 id="user-display-name" class="text-2xl font-bold text-gray-800">พนักงาน</h2>
+                    <p id="user-id-display" class="text-xs text-gray-400 mt-1"></p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="showRegisterPasskey()" title="ลงทะเบียน Face ID" 
+                            class="w-10 h-10 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center hover:bg-blue-100 transition">
+                        <i class="fa-solid fa-face-smile"></i>
+                    </button>
+                    <button onclick="logout()" 
+                            class="w-10 h-10 bg-red-50 text-red-500 rounded-full flex items-center justify-center hover:bg-red-100 transition">
+                        <i class="fa-solid fa-power-off"></i>
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="px-4 space-y-4">
-        <button onclick="startCheckin('in')" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-2xl p-6 shadow-lg shadow-emerald-200 transition transform hover:-translate-y-1 text-left flex items-center justify-between">
-            <div><h3 class="text-xl font-bold mb-1">เช็คอินสถานที่</h3><p class="text-emerald-100 text-sm">บันทึกเวลาและพิกัดปัจจุบัน</p></div>
-            <div class="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center"><i class="fa-solid fa-location-dot text-2xl"></i></div>
-        </button>
-        <button onclick="startCheckin('out')" class="w-full bg-gradient-to-r from-orange-400 to-red-500 text-white rounded-2xl p-6 shadow-lg shadow-orange-200 transition transform hover:-translate-y-1 text-left flex items-center justify-between">
-            <div><h3 class="text-xl font-bold mb-1">เช็คเอาท์สถานที่</h3><p class="text-orange-100 text-sm">บันทึกเวลาเลิกงานและพิกัด</p></div>
-            <div class="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center"><i class="fa-solid fa-person-walking-arrow-right text-2xl"></i></div>
-        </button>
-        <button onclick="goToUserDashboard()" class="w-full bg-white text-gray-800 border border-gray-200 rounded-2xl p-6 shadow-sm transition transform hover:-translate-y-1 text-left flex items-center justify-between">
-            <div><h3 class="text-xl font-bold mb-1 text-blue-600">ดูแดชบอร์ด</h3><p class="text-gray-500 text-sm">ตรวจสอบประวัติการเช็คอิน</p></div>
-            <div class="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center"><i class="fa-solid fa-chart-pie text-2xl text-blue-500"></i></div>
-        </button>
+        <div class="px-4 space-y-4">
+            <button onclick="startCheckin('in')" 
+                    class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-2xl p-6 shadow-lg shadow-emerald-200 transition transform hover:-translate-y-1 text-left flex items-center justify-between">
+                <div>
+                    <h3 class="text-xl font-bold mb-1">เช็คอินสถานที่</h3>
+                    <p class="text-emerald-100 text-sm">บันทึกเวลาและพิกัดปัจจุบัน</p>
+                </div>
+                <div class="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center">
+                    <i class="fa-solid fa-location-dot text-2xl"></i>
+                </div>
+            </button>
+            <button onclick="startCheckin('out')" 
+                    class="w-full bg-gradient-to-r from-orange-400 to-red-500 text-white rounded-2xl p-6 shadow-lg shadow-orange-200 transition transform hover:-translate-y-1 text-left flex items-center justify-between">
+                <div>
+                    <h3 class="text-xl font-bold mb-1">เช็คเอาท์สถานที่</h3>
+                    <p class="text-orange-100 text-sm">บันทึกเวลาเลิกงานและพิกัด</p>
+                </div>
+                <div class="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center">
+                    <i class="fa-solid fa-person-walking-arrow-right text-2xl"></i>
+                </div>
+            </button>
+            <button onclick="goToUserDashboard()" 
+                    class="w-full bg-white text-gray-800 border border-gray-200 rounded-2xl p-6 shadow-sm transition transform hover:-translate-y-1 text-left flex items-center justify-between">
+                <div>
+                    <h3 class="text-xl font-bold mb-1 text-blue-600">ดูแดชบอร์ด</h3>
+                    <p class="text-gray-500 text-sm">ตรวจสอบประวัติการเช็คอิน</p>
+                </div>
+                <div class="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center">
+                    <i class="fa-solid fa-chart-pie text-2xl text-blue-500"></i>
+                </div>
+            </button>
+        </div>
     </div>
 </div>
 
 <!-- 3. Step 1: ถ่ายรูปหน้า -->
-<div id="checkin-step1-face" class="hidden w-full max-w-md flex flex-col mx-auto">
-    <div class="flex items-center gap-3 p-4 mb-2 mt-4">
-        <button onclick="backToUserMenu()" class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm text-gray-600"><i class="fa-solid fa-arrow-left"></i></button>
-        <div><h2 id="step1-title" class="text-lg font-bold text-gray-800">ยืนยันตัวตน (1/2)</h2><p class="text-xs text-gray-500">กรุณาถ่ายรูปใบหน้า</p></div>
+<div id="checkin-step1-face" class="hidden">
+    <div class="checkin-section">
+        <!-- Header -->
+        <div class="flex items-center gap-3 p-4 bg-white shadow-sm">
+            <button onclick="backToUserMenu()" 
+                    class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-600">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <div>
+                <h2 id="step1-title" class="text-lg font-bold text-gray-800">ยืนยันตัวตน (1/2)</h2>
+                <p class="text-xs text-gray-500">กรุณาถ่ายรูปใบหน้าให้ชัดเจน</p>
+            </div>
+        </div>
+        
+        <!-- Camera area — ✅ FIX: ขยายเต็มพื้นที่ -->
+        <div class="flex-1 flex flex-col justify-center px-4 py-4 bg-gray-900">
+            <div class="camera-container" style="height: 55vh; max-height: 500px; border-radius: 1.5rem; overflow: hidden;">
+                <video id="face-video" autoplay playsinline muted 
+                       style="width:100%; height:100%; object-fit:cover; display:block;"></video>
+                <div class="face-guide"></div>
+            </div>
+        </div>
+        
+        <!-- Button -->
+        <div class="p-5 bg-gray-900">
+            <button onclick="captureFaceAndNext()" 
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg py-4 rounded-2xl shadow-lg transition flex justify-center items-center gap-3">
+                <i class="fa-solid fa-camera"></i> ถ่ายรูปและไปต่อ
+            </button>
+        </div>
+        
+        <canvas id="face-canvas" class="hidden"></canvas>
     </div>
-    <div class="camera-container flex-grow">
-        <video id="face-video" autoplay playsinline></video>
-        <div class="face-guide"></div>
-    </div>
-    <div class="p-6 mt-auto">
-        <button onclick="captureFaceAndNext()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg py-4 rounded-2xl shadow-lg transition flex justify-center items-center gap-3">
-            <i class="fa-solid fa-camera"></i> ถ่ายรูปและไปต่อ
-        </button>
-    </div>
-    <canvas id="face-canvas" class="hidden"></canvas>
 </div>
 
 <!-- 4. Step 2: ถ่ายสถานที่ -->
-<div id="checkin-step2-location" class="hidden w-full max-w-md flex flex-col mx-auto">
-    <div class="flex items-center gap-3 p-4 mb-2 mt-4">
-        <button onclick="startCheckin(currentCheckType)" class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm text-gray-600"><i class="fa-solid fa-arrow-left"></i></button>
-        <div><h2 id="step2-title" class="text-lg font-bold text-gray-800">ถ่ายสถานที่ (2/2)</h2><p class="text-xs text-gray-500" id="current-time-header">รอสักครู่...</p></div>
-    </div>
-    <div class="camera-container flex-grow">
-        <video id="env-video" autoplay playsinline></video>
-        <div class="location-overlay">
-            <div class="flex items-start gap-3">
-                <div class="mt-1 w-8 h-8 bg-red-500/20 rounded-full flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-location-dot text-red-400"></i></div>
-                <div>
-                    <p id="location-text" class="font-medium text-sm leading-tight text-white">กำลังค้นหาพิกัด...</p>
-                    <p id="datetime-text" class="text-xs text-gray-300 mt-1"></p>
+<div id="checkin-step2-location" class="hidden">
+    <div class="checkin-section">
+        <!-- Header -->
+        <div class="flex items-center gap-3 p-4 bg-white shadow-sm">
+            <button onclick="startCheckin(currentCheckType)" 
+                    class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-600">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <div>
+                <h2 id="step2-title" class="text-lg font-bold text-gray-800">ถ่ายสถานที่ (2/2)</h2>
+                <p class="text-xs text-gray-500" id="current-time-header">รอสักครู่...</p>
+            </div>
+        </div>
+        
+        <!-- Camera area -->
+        <div class="flex-1 flex flex-col justify-center px-4 py-4 bg-gray-900">
+            <div style="position:relative; width:100%; height:55vh; max-height:500px; min-height:300px; border-radius:1.5rem; overflow:hidden; background:#000; box-shadow:0 10px 25px rgba(0,0,0,0.3);">
+                <video id="env-video" autoplay playsinline muted 
+                       style="width:100%; height:100%; object-fit:cover; display:block;"></video>
+                <div class="location-overlay">
+                    <div class="flex items-start gap-3">
+                        <div class="mt-1 w-8 h-8 bg-red-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fa-solid fa-location-dot text-red-400"></i>
+                        </div>
+                        <div>
+                            <p id="location-text" class="font-medium text-sm leading-tight text-white">กำลังค้นหาพิกัด...</p>
+                            <p id="datetime-text" class="text-xs text-gray-300 mt-1"></p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+        
+        <!-- Button -->
+        <div class="p-5 bg-gray-900">
+            <button id="btn-confirm" disabled onclick="captureEnvAndSubmit()" 
+                    class="w-full bg-gray-500 text-white font-bold text-lg py-4 rounded-2xl shadow-lg transition flex justify-center items-center gap-3 opacity-70 cursor-not-allowed">
+                <span class="spinner"></span> กำลังค้นหาพิกัด...
+            </button>
+        </div>
+        
+        <canvas id="env-canvas" class="hidden"></canvas>
     </div>
-    <div class="p-6 mt-auto">
-        <button id="btn-confirm" disabled onclick="captureEnvAndSubmit()" class="w-full bg-gray-400 text-white font-bold text-lg py-4 rounded-2xl shadow-lg transition flex justify-center items-center gap-3 disabled:cursor-not-allowed">
-            <span class="spinner"></span> กำลังค้นหาพิกัด...
-        </button>
-    </div>
-    <canvas id="env-canvas" class="hidden"></canvas>
 </div>
 
 <!-- 5. User Dashboard -->
-<div id="user-dashboard-section" class="hidden w-full max-w-md flex flex-col mx-auto">
-    <div class="bg-white p-6 rounded-b-3xl shadow-sm mb-4 mt-8">
-        <div class="flex items-center gap-3">
-            <button onclick="backToUserMenu()" class="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-600"><i class="fa-solid fa-arrow-left"></i></button>
-            <h2 class="text-xl font-bold text-gray-800">แดชบอร์ดของฉัน</h2>
+<div id="user-dashboard-section" class="hidden page-wrapper">
+    <div class="login-wrapper flex flex-col pt-8">
+        <div class="bg-white p-6 rounded-b-3xl shadow-sm mb-4">
+            <div class="flex items-center gap-3">
+                <button onclick="backToUserMenu()" 
+                        class="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-600">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <h2 class="text-xl font-bold text-gray-800">แดชบอร์ดของฉัน</h2>
+            </div>
         </div>
-    </div>
-    <div class="px-4 overflow-y-auto pb-6">
-        <div class="bg-blue-600 rounded-2xl p-6 text-white shadow-lg mb-4">
-            <p class="text-blue-200 text-sm mb-1">สถิติการเช็คอิน/เอาท์ (เดือนนี้)</p>
-            <h3 id="month-count" class="text-4xl font-bold">-- <span class="text-lg font-normal">ครั้ง</span></h3>
-        </div>
-        <h4 class="font-bold text-gray-700 mb-3 px-1">ประวัติล่าสุด</h4>
-        <div id="history-container" class="space-y-3">
-            <div class="text-center text-gray-400 py-8"><i class="fa-solid fa-spinner fa-spin text-2xl"></i><p class="mt-2 text-sm">กำลังโหลด...</p></div>
+        <div class="px-4 overflow-y-auto pb-6">
+            <div class="bg-blue-600 rounded-2xl p-6 text-white shadow-lg mb-4">
+                <p class="text-blue-200 text-sm mb-1">สถิติการเช็คอิน/เอาท์ (เดือนนี้)</p>
+                <h3 id="month-count" class="text-4xl font-bold">-- <span class="text-lg font-normal">ครั้ง</span></h3>
+            </div>
+            <h4 class="font-bold text-gray-700 mb-3 px-1">ประวัติล่าสุด</h4>
+            <div id="history-container" class="space-y-3">
+                <div class="text-center text-gray-400 py-8">
+                    <i class="fa-solid fa-spinner fa-spin text-2xl"></i>
+                    <p class="mt-2 text-sm">กำลังโหลด...</p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- 6. Admin Dashboard -->
-<div id="admin-dashboard" class="hidden w-full max-w-md flex flex-col mx-auto bg-gray-50">
-    <div class="bg-indigo-600 p-6 rounded-b-3xl shadow-md text-white mt-8">
-        <div class="flex justify-between items-center mb-4">
-            <div><h2 class="text-xl font-bold">Admin Dashboard</h2><p class="text-indigo-200 text-sm">ระบบจัดการข้อมูล</p></div>
-            <button onclick="logout()" class="text-white bg-indigo-500 hover:bg-indigo-700 px-4 py-2 rounded-xl text-sm transition">ออกจากระบบ</button>
+<div id="admin-dashboard" class="hidden page-wrapper">
+    <div class="login-wrapper flex flex-col pt-8">
+        <div class="bg-indigo-600 p-6 rounded-b-3xl shadow-md text-white">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h2 class="text-xl font-bold">Admin Dashboard</h2>
+                    <p class="text-indigo-200 text-sm">ระบบจัดการข้อมูล</p>
+                </div>
+                <button onclick="logout()" 
+                        class="text-white bg-indigo-500 hover:bg-indigo-700 px-4 py-2 rounded-xl text-sm transition">
+                    ออกจากระบบ
+                </button>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mt-6">
+                <div class="bg-white/10 p-4 rounded-2xl">
+                    <p class="text-indigo-100 text-xs mb-1">เช็คอินวันนี้</p>
+                    <p id="admin-today-count" class="text-2xl font-bold">--</p>
+                </div>
+                <div class="bg-white/10 p-4 rounded-2xl">
+                    <p class="text-indigo-100 text-xs mb-1">พนักงานทั้งหมด</p>
+                    <p id="admin-total-emp" class="text-2xl font-bold">--</p>
+                </div>
+            </div>
         </div>
-        <div class="grid grid-cols-2 gap-4 mt-6">
-            <div class="bg-white/10 p-4 rounded-2xl"><p class="text-indigo-100 text-xs mb-1">เช็คอินวันนี้</p><p id="admin-today-count" class="text-2xl font-bold">--</p></div>
-            <div class="bg-white/10 p-4 rounded-2xl"><p class="text-indigo-100 text-xs mb-1">พนักงานทั้งหมด</p><p id="admin-total-emp" class="text-2xl font-bold">--</p></div>
+        <div class="p-6 space-y-4">
+            <h3 class="font-bold text-gray-800 text-lg mb-2">เมนูการจัดการ</h3>
+            <button onclick="openAddEmployeeModal()" 
+                    class="w-full bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-user-plus"></i>
+                    </div>
+                    <div class="text-left">
+                        <p class="font-bold text-gray-800">เพิ่มพนักงานใหม่</p>
+                        <p class="text-xs text-gray-500">เพิ่มข้อมูลและรหัสผ่าน</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-gray-300"></i>
+            </button>
+            <a href="https://lookerstudio.google.com" target="_blank" 
+               class="w-full bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition block">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <div class="text-left">
+                        <p class="font-bold text-gray-800">Looker Studio</p>
+                        <p class="text-xs text-gray-500">เปิด Dashboard กราฟ</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-arrow-up-right-from-square text-gray-300"></i>
+            </a>
+            <a href="https://docs.google.com/spreadsheets/d/1EY6_RoA7XdYoPGzPhI0oqUyg3qqXdN4xB8KnaTR3N7Y" target="_blank" 
+               class="w-full bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition block">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-green-50 text-green-600 rounded-full flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-table"></i>
+                    </div>
+                    <div class="text-left">
+                        <p class="font-bold text-gray-800">Google Sheets</p>
+                        <p class="text-xs text-gray-500">ดูข้อมูลดิบทั้งหมด</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-arrow-up-right-from-square text-gray-300"></i>
+            </a>
         </div>
-    </div>
-    <div class="p-6 space-y-4">
-        <h3 class="font-bold text-gray-800 text-lg mb-2">เมนูการจัดการ</h3>
-        <button onclick="openAddEmployeeModal()" class="w-full bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-xl"><i class="fa-solid fa-user-plus"></i></div>
-                <div class="text-left"><p class="font-bold text-gray-800">เพิ่มพนักงานใหม่</p><p class="text-xs text-gray-500">เพิ่มข้อมูลและรหัสผ่าน</p></div>
-            </div>
-            <i class="fa-solid fa-chevron-right text-gray-300"></i>
-        </button>
-        <a href="https://lookerstudio.google.com" target="_blank" class="w-full bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition block">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-xl"><i class="fa-solid fa-chart-line"></i></div>
-                <div class="text-left"><p class="font-bold text-gray-800">Looker Studio</p><p class="text-xs text-gray-500">เปิด Dashboard กราฟ</p></div>
-            </div>
-            <i class="fa-solid fa-arrow-up-right-from-square text-gray-300"></i>
-        </a>
-        <a href="https://docs.google.com/spreadsheets/d/1EY6_RoA7XdYoPGzPhI0oqUyg3qqXdN4xB8KnaTR3N7Y" target="_blank" class="w-full bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition block">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-green-50 text-green-600 rounded-full flex items-center justify-center text-xl"><i class="fa-solid fa-table"></i></div>
-                <div class="text-left"><p class="font-bold text-gray-800">Google Sheets</p><p class="text-xs text-gray-500">ดูข้อมูลดิบทั้งหมด</p></div>
-            </div>
-            <i class="fa-solid fa-arrow-up-right-from-square text-gray-300"></i>
-        </a>
     </div>
 </div>
 
+<!-- ========== JAVASCRIPT ========== -->
 <script>
 let currentUser = null;
 let currentCheckType = 'in';
@@ -259,9 +541,10 @@ let envStream = null, faceStream = null;
 let timeInterval = null;
 let adminPw = "";
 
+// ====== Modal ======
 function showAlert(title, message, type='info') {
-    const icons = {success:'fa-check',error:'fa-xmark',info:'fa-info'};
-    const colors = {success:'bg-green-100 text-green-600',error:'bg-red-100 text-red-600',info:'bg-blue-100 text-blue-600'};
+    const icons = { success:'fa-check', error:'fa-xmark', info:'fa-info' };
+    const colors = { success:'bg-green-100 text-green-600', error:'bg-red-100 text-red-600', info:'bg-blue-100 text-blue-600' };
     document.getElementById('modal-title').innerText = title;
     document.getElementById('modal-message').innerText = message;
     const icon = document.getElementById('modal-icon');
@@ -271,57 +554,99 @@ function showAlert(title, message, type='info') {
 }
 function closeModal() { document.getElementById('custom-modal').classList.remove('active'); }
 function showAdminLogin() { document.getElementById('admin-modal').classList.add('active'); }
-function closeAdminModal() { document.getElementById('admin-modal').classList.remove('active'); }
+function closeAdminModal() { document.getElementById('admin-modal').classList.remove('active'); document.getElementById('admin-password').value = ''; }
 function openAddEmployeeModal() { document.getElementById('add-emp-modal').classList.add('active'); }
 function closeAddEmpModal() { document.getElementById('add-emp-modal').classList.remove('active'); }
 
+// ====== Navigation ======
 function hideAll() {
     ['login-section','user-menu-section','checkin-step1-face','checkin-step2-location','user-dashboard-section','admin-dashboard']
-    .forEach(id => document.getElementById(id).classList.add('hidden'));
+    .forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.add('hidden');
+        el.style.display = '';
+    });
 }
-function show(id) { hideAll(); document.getElementById(id).classList.remove('hidden'); }
+
+function show(id) {
+    hideAll();
+    const el = document.getElementById(id);
+    el.classList.remove('hidden');
+}
 
 function logout() {
-    stopCameras(); clearInterval(timeInterval); currentUser = null; facePhotoBase64 = null;
+    stopCameras(); 
+    clearInterval(timeInterval); 
+    currentUser = null; 
+    facePhotoBase64 = null;
     document.getElementById('username').value = '';
     document.getElementById('password').value = '';
     show('login-section');
 }
-function backToUserMenu() { stopCameras(); clearInterval(timeInterval); show('user-menu-section'); }
-function goToUserDashboard() { show('user-dashboard-section'); loadHistory(); }
 
+function backToUserMenu() { 
+    stopCameras(); 
+    clearInterval(timeInterval); 
+    show('user-menu-section'); 
+}
+
+function goToUserDashboard() { 
+    show('user-dashboard-section'); 
+    loadHistory(); 
+}
+
+// ====== Auth ======
 async function loginWithPassword() {
     const employeeId = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value.trim();
-    if (!employeeId || !password) { showAlert('แจ้งเตือน','กรุณากรอกรหัสพนักงานและรหัสผ่าน','error'); return; }
+    if (!employeeId || !password) { 
+        showAlert('แจ้งเตือน', 'กรุณากรอกรหัสพนักงานและรหัสผ่าน', 'error'); 
+        return; 
+    }
     const btn = document.getElementById('btn-login');
-    btn.innerHTML = '<span class="spinner"></span> กำลังตรวจสอบ...'; btn.disabled = true;
+    btn.innerHTML = '<span class="spinner" style="border-top-color:#666"></span> กำลังตรวจสอบ...'; 
+    btn.disabled = true;
     try {
-        const res = await callAPI('login_password', {employeeId, password});
+        const res = await callAPI('login_password', { employeeId, password });
         if (res.status === 'success') {
             currentUser = res.employee;
             document.getElementById('user-display-name').innerText = currentUser.name;
             document.getElementById('user-id-display').innerText = 'รหัส: ' + currentUser.id;
             show('user-menu-section');
-        } else { showAlert('ไม่สำเร็จ', res.message, 'error'); }
-    } catch(e) { showAlert('ข้อผิดพลาด','เชื่อมต่อ API ไม่ได้: ' + e.message,'error'); }
-    btn.innerHTML = 'เข้าสู่ระบบด้วยรหัสผ่าน'; btn.disabled = false;
+        } else { 
+            showAlert('ไม่สำเร็จ', res.message || 'รหัสพนักงานหรือรหัสผ่านไม่ถูกต้อง', 'error'); 
+        }
+    } catch(e) { 
+        showAlert('ข้อผิดพลาด', 'เชื่อมต่อ API ไม่ได้: ' + e.message, 'error'); 
+    }
+    btn.innerHTML = 'เข้าสู่ระบบด้วยรหัสผ่าน'; 
+    btn.disabled = false;
 }
 
 async function loginWithPasskey() {
-    if (!window.PublicKeyCredential) { showAlert('ไม่รองรับ','มือถือนี้ไม่รองรับ Passkey\nกรุณาใช้รหัสผ่านแทน','error'); return; }
+    if (!window.PublicKeyCredential) { 
+        showAlert('ไม่รองรับ', 'มือถือนี้ไม่รองรับ Passkey\nกรุณาใช้รหัสผ่านแทน', 'error'); 
+        return; 
+    }
     try {
         const credential = await navigator.credentials.get({
-            publicKey: { challenge: crypto.getRandomValues(new Uint8Array(32)), timeout: 60000, userVerification: "required", rpId: window.location.hostname }
+            publicKey: { 
+                challenge: crypto.getRandomValues(new Uint8Array(32)), 
+                timeout: 60000, 
+                userVerification: "required", 
+                rpId: window.location.hostname 
+            }
         });
         const credentialId = btoa(String.fromCharCode(...new Uint8Array(credential.rawId)));
-        const res = await callAPI('verify_passkey', {credentialId});
+        const res = await callAPI('verify_passkey', { credentialId });
         if (res.status === 'success') {
             currentUser = res.employee;
             document.getElementById('user-display-name').innerText = currentUser.name;
             document.getElementById('user-id-display').innerText = 'รหัส: ' + currentUser.id;
             show('user-menu-section');
-        } else { showAlert('ไม่พบ Passkey', res.message, 'error'); }
+        } else { 
+            showAlert('ไม่พบ Passkey', res.message, 'error'); 
+        }
     } catch(e) {
         if (e.name !== 'NotAllowedError') showAlert('ข้อผิดพลาด', e.message, 'error');
     }
@@ -334,15 +659,28 @@ async function showRegisterPasskey() {
             publicKey: {
                 challenge: crypto.getRandomValues(new Uint8Array(32)),
                 rp: { name: "Enterprise Check-in", id: window.location.hostname },
-                user: { id: new TextEncoder().encode(currentUser.id), name: currentUser.id, displayName: currentUser.name },
-                pubKeyCredParams: [{alg: -7, type: "public-key"}],
+                user: { 
+                    id: new TextEncoder().encode(currentUser.id), 
+                    name: currentUser.id, 
+                    displayName: currentUser.name 
+                },
+                pubKeyCredParams: [{ alg: -7, type: "public-key" }],
                 authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
                 timeout: 60000,
             }
         });
         const credentialId = btoa(String.fromCharCode(...new Uint8Array(credential.rawId)));
-        const res = await callAPI('register_passkey', { employeeId: currentUser.id, credentialId, publicKey: "stored-on-device", deviceInfo: navigator.userAgent.substring(0,100) });
-        showAlert(res.status === 'success' ? 'สำเร็จ' : 'ข้อผิดพลาด', res.message, res.status === 'success' ? 'success' : 'error');
+        const res = await callAPI('register_passkey', { 
+            employeeId: currentUser.id, 
+            credentialId, 
+            publicKey: "stored-on-device", 
+            deviceInfo: navigator.userAgent.substring(0, 100) 
+        });
+        showAlert(
+            res.status === 'success' ? 'สำเร็จ' : 'ข้อผิดพลาด', 
+            res.message, 
+            res.status === 'success' ? 'success' : 'error'
+        );
     } catch(e) {
         if (e.name !== 'NotAllowedError') showAlert('ข้อผิดพลาด', e.message, 'error');
     }
@@ -351,63 +689,123 @@ async function showRegisterPasskey() {
 async function loginAsAdmin() {
     const pw = document.getElementById('admin-password').value.trim();
     if (!pw) return;
-    adminPw = pw; closeAdminModal();
+    adminPw = pw; 
+    closeAdminModal();
     try {
-        const res = await callAPI('get_admin_summary', {adminPassword: pw});
+        const res = await callAPI('get_admin_summary', { adminPassword: pw });
         if (res.status === 'success') {
             document.getElementById('admin-today-count').innerText = res.summary.todayCheckinCount + ' คน';
             document.getElementById('admin-total-emp').innerText = res.summary.totalEmployees + ' คน';
             show('admin-dashboard');
-        } else { showAlert('ไม่สำเร็จ', res.message, 'error'); }
-    } catch(e) { showAlert('ข้อผิดพลาด', e.message, 'error'); }
+        } else { 
+            showAlert('ไม่สำเร็จ', res.message, 'error'); 
+        }
+    } catch(e) { 
+        showAlert('ข้อผิดพลาด', e.message, 'error'); 
+    }
 }
 
 async function submitAddEmployee() {
     const id = document.getElementById('new-emp-id').value.trim();
     const name = document.getElementById('new-emp-name').value.trim();
     const password = document.getElementById('new-emp-password').value.trim();
-    if (!id || !name || !password) { showAlert('แจ้งเตือน','กรุณากรอกข้อมูลให้ครบ','error'); return; }
-    const res = await callAPI('add_employee', {adminPassword: adminPw, employeeId: id, name, password});
+    if (!id || !name || !password) { 
+        showAlert('แจ้งเตือน', 'กรุณากรอกข้อมูลให้ครบ', 'error'); 
+        return; 
+    }
+    const res = await callAPI('add_employee', { adminPassword: adminPw, employeeId: id, name, password });
     closeAddEmpModal();
-    showAlert(res.status === 'success' ? 'สำเร็จ' : 'ข้อผิดพลาด', res.message, res.status === 'success' ? 'success' : 'error');
+    showAlert(
+        res.status === 'success' ? 'สำเร็จ' : 'ข้อผิดพลาด', 
+        res.message, 
+        res.status === 'success' ? 'success' : 'error'
+    );
 }
 
+// ====== Check-in flow ======
 async function startCheckin(type) {
     currentCheckType = type;
     const label = type === 'in' ? 'เช็คอิน' : 'เช็คเอาท์';
     document.getElementById('step1-title').innerText = `${label}: ยืนยันตัวตน (1/2)`;
     document.getElementById('step2-title').innerText = `${label}: ถ่ายสถานที่ (2/2)`;
     facePhotoBase64 = null;
+    
+    stopCameras();
     show('checkin-step1-face');
+    
+    // ✅ รอให้ DOM render ก่อนเปิดกล้อง
+    await new Promise(r => setTimeout(r, 100));
+    
     try {
-        faceStream = await navigator.mediaDevices.getUserMedia({video: {facingMode:"user"}, audio: false});
-        document.getElementById('face-video').srcObject = faceStream;
-    } catch(e) { showAlert('ข้อผิดพลาด','ไม่สามารถเปิดกล้องได้','error'); backToUserMenu(); }
+        faceStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } }, 
+            audio: false
+        });
+        const video = document.getElementById('face-video');
+        video.srcObject = faceStream;
+        // ✅ รอให้ video พร้อมก่อน
+        await new Promise(r => { video.onloadedmetadata = r; });
+        video.play();
+    } catch(e) { 
+        showAlert('ข้อผิดพลาด', 'ไม่สามารถเปิดกล้องได้: ' + e.message, 'error'); 
+        backToUserMenu(); 
+    }
 }
 
 function captureFaceAndNext() {
     const video = document.getElementById('face-video');
-    const canvas = document.getElementById('face-canvas');
-    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-    canvas.getContext('2d').drawImage(video, 0, 0);
-    facePhotoBase64 = canvas.toDataURL('image/jpeg', 0.7);
+    if (!video.videoWidth) {
+        showAlert('แจ้งเตือน', 'กล้องยังไม่พร้อม กรุณารอสักครู่', 'info');
+        return;
+    }
+    // ✅ FIX 2: ใช้ captureResized แทน canvas โดยตรง
+    facePhotoBase64 = captureResized(video, 0.7, 640);
     stopStream(faceStream);
+    faceStream = null;
     startStep2();
 }
 
 async function startStep2() {
     show('checkin-step2-location');
     currentAddress = ""; currentLat = null; currentLng = null;
+    
     const btn = document.getElementById('btn-confirm');
     btn.disabled = true;
-    btn.className = "w-full bg-gray-400 text-white font-bold text-lg py-4 rounded-2xl shadow-lg transition flex justify-center items-center gap-3 disabled:cursor-not-allowed";
+    btn.className = "w-full bg-gray-500 text-white font-bold text-lg py-4 rounded-2xl shadow-lg flex justify-center items-center gap-3 opacity-70 cursor-not-allowed";
     btn.innerHTML = '<span class="spinner"></span> กำลังค้นหาพิกัด...';
+    
     document.getElementById('location-text').innerText = 'กำลังค้นหาพิกัด...';
-    updateTime(); timeInterval = setInterval(updateTime, 1000);
+    updateTime(); 
+    clearInterval(timeInterval);
+    timeInterval = setInterval(updateTime, 1000);
+    
+    // ✅ รอให้ DOM render ก่อนเปิดกล้อง
+    await new Promise(r => setTimeout(r, 100));
+    
     try {
-        envStream = await navigator.mediaDevices.getUserMedia({video: {facingMode:"environment"}, audio: false});
-        document.getElementById('env-video').srcObject = envStream;
-    } catch(e) { showAlert('ข้อผิดพลาด','เปิดกล้องหลังไม่ได้','error'); backToUserMenu(); return; }
+        envStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } }, 
+            audio: false
+        });
+        const video = document.getElementById('env-video');
+        video.srcObject = envStream;
+        await new Promise(r => { video.onloadedmetadata = r; });
+        video.play();
+    } catch(e) { 
+        // ลองกล้องหน้าถ้ากล้องหลังไม่ได้
+        try {
+            envStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+            const video = document.getElementById('env-video');
+            video.srcObject = envStream;
+            await new Promise(r => { video.onloadedmetadata = r; });
+            video.play();
+        } catch(e2) {
+            showAlert('ข้อผิดพลาด', 'เปิดกล้องไม่ได้: ' + e2.message, 'error'); 
+            backToUserMenu(); 
+            return;
+        }
+    }
+    
     getGPS();
 }
 
@@ -419,30 +817,46 @@ function getGPS() {
         document.getElementById('location-text').innerText = currentAddress;
         enableConfirmBtn();
     };
-    const timer = setTimeout(fallback, 8000);
-    navigator.geolocation?.getCurrentPosition(
+    const timer = setTimeout(fallback, 10000);
+    
+    if (!navigator.geolocation) { fallback(); return; }
+    
+    navigator.geolocation.getCurrentPosition(
         async (pos) => {
             if (done) return; done = true; clearTimeout(timer);
-            currentLat = pos.coords.latitude; currentLng = pos.coords.longitude;
+            currentLat = pos.coords.latitude; 
+            currentLng = pos.coords.longitude;
             try {
-                const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${currentLat}&lon=${currentLng}&accept-language=th`);
+                const r = await fetch(
+                    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${currentLat}&lon=${currentLng}&accept-language=th`,
+                    { headers: { 'User-Agent': 'EnterpriseCheckin/1.0' } }
+                );
                 const d = await r.json();
                 if (d.address) {
                     const sub = d.address.suburb || d.address.village || d.address.neighbourhood || "";
                     const dist = d.address.city_district || d.address.county || d.address.town || "";
                     const prov = d.address.state || "";
-                    currentAddress = [sub?"ต."+sub:"", dist?"อ."+dist:"", prov?"จ."+prov:""].filter(Boolean).join(" ");
-                } else { currentAddress = `${currentLat.toFixed(4)}, ${currentLng.toFixed(4)}`; }
-            } catch { currentAddress = `${currentLat.toFixed(4)}, ${currentLng.toFixed(4)}`; }
+                    currentAddress = [sub ? "ต." + sub : "", dist ? "อ." + dist : "", prov ? "จ." + prov : ""].filter(Boolean).join(" ") 
+                                     || d.display_name?.split(',').slice(0,3).join(',')
+                                     || `${currentLat.toFixed(5)}, ${currentLng.toFixed(5)}`;
+                } else { 
+                    currentAddress = `${currentLat.toFixed(5)}, ${currentLng.toFixed(5)}`; 
+                }
+            } catch { 
+                currentAddress = `${currentLat.toFixed(5)}, ${currentLng.toFixed(5)}`; 
+            }
             document.getElementById('location-text').innerText = currentAddress || "พบพิกัดแล้ว";
             enableConfirmBtn();
-        }, fallback, {enableHighAccuracy: true, timeout: 7000}
-    ) ?? fallback();
+        }, 
+        fallback, 
+        { enableHighAccuracy: true, timeout: 9000, maximumAge: 0 }
+    );
 }
 
 function enableConfirmBtn() {
     const btn = document.getElementById('btn-confirm');
     btn.disabled = false;
+    btn.style.cursor = 'pointer';
     if (currentCheckType === 'in') {
         btn.className = "w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-lg py-4 rounded-2xl shadow-lg transition flex justify-center items-center gap-3";
         btn.innerHTML = '<i class="fa-solid fa-camera text-xl"></i> ยืนยันการเช็คอิน';
@@ -454,58 +868,103 @@ function enableConfirmBtn() {
 
 async function captureEnvAndSubmit() {
     const btn = document.getElementById('btn-confirm');
-    btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
+    btn.disabled = true; 
+    btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
+    
     const video = document.getElementById('env-video');
-    const canvas = document.getElementById('env-canvas');
-    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-    canvas.getContext('2d').drawImage(video, 0, 0);
-    const envPhotoBase64 = canvas.toDataURL('image/jpeg', 0.6);
-    stopCameras(); clearInterval(timeInterval);
+    // ✅ FIX 2: Resize รูปสถานที่ด้วย
+    const envPhotoBase64 = captureResized(video, 0.65, 640);
+    
+    stopCameras(); 
+    clearInterval(timeInterval);
+    
     try {
         const res = await callAPI('checkin', {
-            employeeId: currentUser.id, type: currentCheckType,
-            address: currentAddress, latitude: currentLat, longitude: currentLng,
-            facePhotoBase64, envPhotoBase64, timestamp: new Date().toISOString()
+            employeeId: currentUser.id, 
+            type: currentCheckType,
+            address: currentAddress, 
+            latitude: currentLat, 
+            longitude: currentLng,
+            facePhotoBase64,        // ✅ ส่งผ่าน POST body
+            envPhotoBase64,         // ✅ ส่งผ่าน POST body
+            timestamp: new Date().toISOString()
         });
         const label = currentCheckType === 'in' ? 'เช็คอิน' : 'เช็คเอาท์';
-        showAlert(res.status==='success'?`${label}สำเร็จ!`:'ข้อผิดพลาด',
-            res.status==='success'?`ชื่อ: ${currentUser.name}\nตำแหน่ง: ${currentAddress}\nเวลา: ${new Date().toLocaleTimeString('th-TH')}`:res.message,
-            res.status==='success'?'success':'error');
-    } catch(e) { showAlert('ข้อผิดพลาด','บันทึกไม่สำเร็จ: '+e.message,'error'); }
+        if (res.status === 'success') {
+            showAlert(
+                `${label}สำเร็จ!`,
+                `ชื่อ: ${currentUser.name}\nตำแหน่ง: ${currentAddress}\nเวลา: ${new Date().toLocaleTimeString('th-TH')}`,
+                'success'
+            );
+        } else {
+            showAlert('ข้อผิดพลาด', res.message || 'บันทึกไม่สำเร็จ', 'error');
+        }
+    } catch(e) { 
+        showAlert('ข้อผิดพลาด', 'บันทึกไม่สำเร็จ: ' + e.message, 'error'); 
+    }
     backToUserMenu();
 }
 
+// ====== History ======
 async function loadHistory() {
+    document.getElementById('history-container').innerHTML = 
+        '<div class="text-center text-gray-400 py-8"><i class="fa-solid fa-spinner fa-spin text-2xl"></i><p class="mt-2 text-sm">กำลังโหลด...</p></div>';
     try {
-        const res = await callAPI('get_history', {employeeId: currentUser.id, limit: 10});
-        if (res.status !== 'success') return;
+        const res = await callAPI('get_history', { employeeId: currentUser.id, limit: 15 });
+        if (res.status !== 'success') throw new Error(res.message);
         document.getElementById('month-count').innerHTML = `${res.monthCount} <span class="text-lg font-normal">ครั้ง</span>`;
         const container = document.getElementById('history-container');
-        if (!res.history.length) { container.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">ยังไม่มีประวัติ</p>'; return; }
+        if (!res.history || !res.history.length) { 
+            container.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">ยังไม่มีประวัติ</p>'; 
+            return; 
+        }
         container.innerHTML = res.history.map(h => {
-            const isIn = h.type==='in';
+            const isIn = h.type === 'in';
             return `<div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 ${isIn?'border-l-emerald-500':'border-l-orange-500'} flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 ${isIn?'bg-emerald-100 text-emerald-600':'bg-orange-100 text-orange-600'} rounded-full flex items-center justify-center">
                         <i class="fa-solid ${isIn?'fa-arrow-right-to-bracket':'fa-arrow-right-from-bracket'}"></i>
                     </div>
-                    <div><p class="font-bold text-sm text-gray-800">${isIn?'เช็คอิน':'เช็คเอาท์'} — ${h.date}</p><p class="text-xs text-gray-500">${h.address}</p></div>
+                    <div>
+                        <p class="font-bold text-sm text-gray-800">${isIn?'เช็คอิน':'เช็คเอาท์'} — ${h.date || ''}</p>
+                        <p class="text-xs text-gray-500">${h.address || ''}</p>
+                    </div>
                 </div>
-                <span class="text-sm font-medium text-gray-600">${h.time}</span>
+                <span class="text-sm font-medium text-gray-600 flex-shrink-0 ml-2">${h.time || ''}</span>
             </div>`;
         }).join('');
-    } catch(e) { document.getElementById('history-container').innerHTML = '<p class="text-center text-red-400 py-8 text-sm">โหลดไม่สำเร็จ</p>'; }
+    } catch(e) { 
+        document.getElementById('history-container').innerHTML = 
+            `<p class="text-center text-red-400 py-8 text-sm">โหลดไม่สำเร็จ: ${e.message}</p>`; 
+    }
 }
 
+// ====== Utils ======
 function updateTime() {
     const now = new Date();
-    const t = now.toLocaleTimeString('th-TH'), d = now.toLocaleDateString('th-TH',{year:'numeric',month:'short',day:'numeric'});
-    const hdr = document.getElementById('current-time-header'); if(hdr) hdr.innerText = `${d} | ${t}`;
-    const dt = document.getElementById('datetime-text'); if(dt) dt.innerText = `${d} ${t}`;
+    const t = now.toLocaleTimeString('th-TH');
+    const d = now.toLocaleDateString('th-TH', { year:'numeric', month:'short', day:'numeric' });
+    const hdr = document.getElementById('current-time-header'); 
+    if (hdr) hdr.innerText = `${d} | ${t}`;
+    const dt = document.getElementById('datetime-text'); 
+    if (dt) dt.innerText = `${d}  ${t}`;
 }
-function stopStream(s) { if(s) s.getTracks().forEach(t=>t.stop()); }
-function stopCameras() { stopStream(envStream); envStream=null; stopStream(faceStream); faceStream=null; }
 
+function stopStream(s) { 
+    if (s) s.getTracks().forEach(t => t.stop()); 
+}
+
+function stopCameras() { 
+    stopStream(envStream); envStream = null; 
+    stopStream(faceStream); faceStream = null;
+    // ✅ clear video src
+    ['face-video','env-video'].forEach(id => {
+        const v = document.getElementById(id);
+        if (v) { v.srcObject = null; }
+    });
+}
+
+// ====== Init ======
 window.addEventListener('load', () => {
     if (!window.PublicKeyCredential) {
         document.getElementById('btn-passkey').style.display = 'none';
