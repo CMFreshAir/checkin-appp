@@ -137,8 +137,7 @@
 <body>
 
 <script>
-    // !! แก้ไขค่านี้หากเปลี่ยน Apps Script !!
-    const API_URL = "https://script.google.com/macros/s/AKfycbyEjtS-73OSW8E1D6vz_JjlUY3TVRr9KkyOQiadGYRIyFBASL09Z5pc2dON9KFDWo-pEA/exec"; // <-- ใส่ URL ใหม่ของคุณที่ Deploy ล่าสุด
+    const API_URL = "https://script.google.com/macros/s/AKfycbyEjtS-73OSW8E1D6vz_JjlUY3TVRr9KkyOQiadGYRIyFBASL09Z5pc2dON9KFDWo-pEA/exec";
 
     async function callAPI(action, data = {}) {
         try {
@@ -220,7 +219,7 @@
 <div id="export-modal" class="modal-overlay">
     <div class="modal-content">
         <h3 class="text-lg font-bold text-gray-800 mb-4"><i class="fa-solid fa-file-csv text-blue-600 mr-2"></i>ดึงข้อมูลรายเดือน</h3>
-        <p class="text-sm text-gray-500 mb-4">เลือกเดือนที่ต้องการดึงข้อมูลการเช็คอิน (ไฟล์จะถูกดาวน์โหลดเป็น .csv)</p>
+        <p class="text-sm text-gray-500 mb-4">เลือกเดือนที่ต้องการดึงข้อมูลการเช็คอิน</p>
         <input type="month" id="export-month" class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500 mb-5">
         <div class="flex gap-3">
             <button onclick="closeExportModal()" class="flex-1 border border-gray-300 text-gray-600 py-3 rounded-xl">ยกเลิก</button>
@@ -296,7 +295,7 @@
                     </button>
                 </div>
             </div>
-            <!-- สถานะการเช็คอินวันนี้ -->
+            <!-- FIX #4: สถานะการเช็คอินวันนี้ — แสดงทั้งสถานะ check-in และ check-out -->
             <div id="today-status-container" class="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-lg">
                 <i class="fa-solid fa-circle-notch fa-spin text-gray-400 text-sm"></i>
                 <span class="text-sm font-medium text-gray-600">กำลังตรวจสอบสถานะ...</span>
@@ -415,7 +414,7 @@
                 <p class="text-blue-200 text-sm mb-1">จำนวนการเช็คอิน/เอาท์ (เดือนนี้)</p>
                 <h3 id="month-count" class="text-5xl font-bold mt-2">-- <span class="text-lg font-normal">ครั้ง</span></h3>
             </div>
-            <h4 class="font-bold text-gray-700 mb-3 px-1">ประวัติล่าสุด (ย่อ)</h4>
+            <h4 class="font-bold text-gray-700 mb-3 px-1">ประวัติล่าสุด</h4>
             <div id="history-container" class="space-y-3">
                 <div class="text-center text-gray-400 py-8">
                     <i class="fa-solid fa-spinner fa-spin text-2xl"></i>
@@ -452,12 +451,11 @@
         </div>
         
         <div class="p-6 space-y-4">
-            <!-- แสดงสถิติอำเภอ -->
+            <!-- FIX #3: สถิติสถานที่วันนี้ -->
             <h3 class="font-bold text-gray-800 text-lg mb-2 flex items-center gap-2">
                 <i class="fa-solid fa-map-location-dot text-indigo-500"></i> สถิติสถานที่วันนี้
             </h3>
             <div id="admin-locations-container" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-2 mb-6">
-                <!-- Data will be injected here -->
                 <p class="text-sm text-gray-500 text-center py-2">กำลังโหลด...</p>
             </div>
 
@@ -474,7 +472,7 @@
                 </div>
                 <i class="fa-solid fa-chevron-right text-gray-300"></i>
             </button>
-            <button onclick="openExportModal()" class="w-full bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition block">
+            <button onclick="openExportModal()" class="w-full bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-xl">
                         <i class="fa-solid fa-file-csv"></i>
@@ -517,7 +515,6 @@ function closeAdminModal() { document.getElementById('admin-modal').classList.re
 function openAddEmployeeModal() { document.getElementById('add-emp-modal').classList.add('active'); }
 function closeAddEmpModal() { document.getElementById('add-emp-modal').classList.remove('active'); }
 function openExportModal() { 
-    // Set default month to current
     const now = new Date();
     document.getElementById('export-month').value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2, '0')}`;
     document.getElementById('export-modal').classList.add('active'); 
@@ -554,7 +551,7 @@ function backToUserMenu() {
     stopCameras(); 
     clearInterval(timeInterval); 
     show('user-menu-section'); 
-    fetchTodayStatus(); // Refresh status when coming back
+    fetchTodayStatus();
 }
 
 function goToUserDashboard() { 
@@ -616,6 +613,7 @@ function handleLoginSuccess(employee) {
     fetchTodayStatus();
 }
 
+// FIX #4: ตรวจสอบสถานะวันนี้ครบทั้ง in/out
 async function fetchTodayStatus() {
     const statusContainer = document.getElementById('today-status-container');
     statusContainer.className = "inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-lg";
@@ -623,18 +621,31 @@ async function fetchTodayStatus() {
     
     try {
         const res = await callAPI('check_today_status', { employeeId: currentUser.id });
-        if (res.status === 'success' && res.checkedInToday) {
-            statusContainer.className = "inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 rounded-lg";
-            statusContainer.innerHTML = '<i class="fa-solid fa-check-circle text-green-600 text-sm"></i><span class="text-sm font-medium text-green-700">วันนี้เช็คอินแล้ว</span>';
+        if (res.status === 'success') {
+            if (res.checkedOutToday) {
+                // เช็คเอ้าท์แล้ว
+                statusContainer.className = "inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 rounded-lg";
+                statusContainer.innerHTML = '<i class="fa-solid fa-flag-checkered text-blue-600 text-sm"></i><span class="text-sm font-medium text-blue-700">วันนี้เช็คเอาท์แล้ว</span>';
+            } else if (res.checkedInToday) {
+                // เช็คอินแล้ว แต่ยังไม่เช็คเอาท์
+                statusContainer.className = "inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 rounded-lg";
+                statusContainer.innerHTML = '<i class="fa-solid fa-check-circle text-green-600 text-sm"></i><span class="text-sm font-medium text-green-700">วันนี้เช็คอินแล้ว</span>';
+            } else {
+                // ยังไม่ได้เช็คอินเลย
+                statusContainer.className = "inline-flex items-center gap-2 px-3 py-1.5 bg-orange-100 rounded-lg";
+                statusContainer.innerHTML = '<i class="fa-solid fa-clock text-orange-500 text-sm"></i><span class="text-sm font-medium text-orange-700">วันนี้ยังไม่ได้เช็คอิน</span>';
+            }
         } else {
-            statusContainer.className = "inline-flex items-center gap-2 px-3 py-1.5 bg-orange-100 rounded-lg";
-            statusContainer.innerHTML = '<i class="fa-solid fa-clock text-orange-500 text-sm"></i><span class="text-sm font-medium text-orange-700">วันนี้ยังไม่ได้เช็คอิน</span>';
+            statusContainer.className = "inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-lg";
+            statusContainer.innerHTML = '<span class="text-sm text-gray-500">ตรวจสอบสถานะไม่ได้</span>';
         }
     } catch(e) {
+        statusContainer.className = "inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-lg";
         statusContainer.innerHTML = '<span class="text-sm text-gray-500">ตรวจสอบสถานะไม่ได้</span>';
     }
 }
 
+// FIX #1 & #3: Admin login — แสดงผลสถิติและสถานที่ถูกต้อง
 async function loginAsAdmin() {
     const pw = document.getElementById('admin-password').value.trim();
     if (!pw) return;
@@ -643,21 +654,28 @@ async function loginAsAdmin() {
     try {
         const res = await callAPI('get_admin_summary', { adminPassword: pw });
         if (res.status === 'success') {
-            document.getElementById('admin-today-count').innerText = res.summary.todayCheckinCount;
-            document.getElementById('admin-total-emp').innerText = res.summary.totalEmployees;
+            // FIX #1: แสดงตัวเลขแบบตรงๆ ไม่ซ้อน HTML
+            const todayEl = document.getElementById('admin-today-count');
+            const totalEl = document.getElementById('admin-total-emp');
+            todayEl.innerHTML = `${res.summary.todayCheckinCount} <span class="text-sm font-normal">คน</span>`;
+            totalEl.innerHTML = `${res.summary.totalEmployees} <span class="text-sm font-normal">คน</span>`;
             
-            // แสดงข้อมูลอำเภอ
+            // FIX #3: แสดงสถิติสถานที่วันนี้
             const locContainer = document.getElementById('admin-locations-container');
-            const locs = res.summary.locations;
-            if (Object.keys(locs).length === 0) {
+            const locs = res.summary.locations || {};
+            const locKeys = Object.keys(locs);
+            
+            if (locKeys.length === 0) {
                 locContainer.innerHTML = '<p class="text-sm text-gray-500 text-center py-2">ยังไม่มีคนเช็คอินวันนี้</p>';
             } else {
+                // เรียงตามจำนวนมากสุดก่อน
+                const sorted = locKeys.sort((a, b) => locs[b] - locs[a]);
                 let html = '';
-                for (const [amphoe, count] of Object.entries(locs)) {
+                for (const place of sorted) {
                     html += `
                         <div class="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
-                            <span class="text-sm text-gray-700 font-medium">${amphoe}</span>
-                            <span class="text-sm bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-md font-bold">${count} คน</span>
+                            <span class="text-sm text-gray-700 font-medium">${place}</span>
+                            <span class="text-sm bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-md font-bold">${locs[place]} คน</span>
                         </div>
                     `;
                 }
@@ -665,7 +683,7 @@ async function loginAsAdmin() {
             }
             show('admin-dashboard');
         } else { 
-            showAlert('ไม่สำเร็จ', res.message, 'error'); 
+            showAlert('ไม่สำเร็จ', res.message || 'รหัสผ่านไม่ถูกต้อง', 'error'); 
         }
     } catch(e) { showAlert('ข้อผิดพลาด', e.message, 'error'); }
 }
@@ -680,9 +698,10 @@ async function submitAddEmployee() {
     showAlert(res.status === 'success' ? 'สำเร็จ' : 'ข้อผิดพลาด', res.message, res.status === 'success' ? 'success' : 'error');
 }
 
+// FIX #2: Export — ส่ง month/year แบบถูกต้อง และจัดการ CSV อย่างถูกต้อง
 async function downloadMonthlyData() {
     const monthVal = document.getElementById('export-month').value;
-    if (!monthVal) return;
+    if (!monthVal) { showAlert('แจ้งเตือน', 'กรุณาเลือกเดือน', 'info'); return; }
     
     const [year, month] = monthVal.split('-');
     const btn = document.getElementById('btn-export');
@@ -690,33 +709,46 @@ async function downloadMonthlyData() {
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังดึงข้อมูล...';
     
     try {
-        const res = await callAPI('export_monthly', { adminPassword: adminPw, month: month, year: year });
+        const res = await callAPI('export_monthly', { 
+            adminPassword: adminPw, 
+            month: month,   // "01"-"12"
+            year: year      // "2024"
+        });
+
         if (res.status === 'success') {
-            if (res.data.length <= 1) {
+            const rows = res.data || [];
+            if (rows.length <= 1) {
                 showAlert('แจ้งเตือน', 'ไม่มีข้อมูลการเช็คอินในเดือนที่เลือก', 'info');
             } else {
-                // แปลง 2D Array เป็น CSV
-                const csvContent = "\uFEFF" + res.data.map(e => e.map(cell => {
-                    let c = String(cell || "").replace(/"/g, '""'); // escape quotes
-                    return /[",\n]/.test(c) ? `"${c}"` : c;
-                }).join(",")).join("\n");
+                // แปลง 2D Array เป็น CSV string อย่างถูกต้อง
+                const csvContent = "\uFEFF" + rows.map(row => 
+                    row.map(cell => {
+                        const str = String(cell == null ? '' : cell);
+                        // ใส่ quotes ถ้ามีคอมม่า, newline, หรือ double quote
+                        if (str.includes(',') || str.includes('\n') || str.includes('"')) {
+                            return '"' + str.replace(/"/g, '""') + '"';
+                        }
+                        return str;
+                    }).join(',')
+                ).join('\n');
                 
-                // สร้างไฟล์ดาวน์โหลด
                 const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
                 const url = URL.createObjectURL(blob);
-                const link = document.createElement("a");
-                link.setAttribute("href", url);
-                link.setAttribute("download", `CheckinLog_${year}_${month}.csv`);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `CheckinLog_${year}_${month}.csv`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
                 closeExportModal();
+                showAlert('สำเร็จ', `ดาวน์โหลดข้อมูล ${rows.length - 1} รายการเรียบร้อย`, 'success');
             }
         } else {
-            showAlert('ไม่สำเร็จ', res.message, 'error');
+            showAlert('ไม่สำเร็จ', res.message || 'ดึงข้อมูลไม่สำเร็จ', 'error');
         }
     } catch(e) {
-        showAlert('ข้อผิดพลาด', e.message, 'error');
+        showAlert('ข้อผิดพลาด', 'เกิดข้อผิดพลาด: ' + e.message, 'error');
     }
     btn.disabled = false;
     btn.innerHTML = '<i class="fa-solid fa-download"></i> ดาวน์โหลด';
@@ -858,42 +890,65 @@ async function captureEnvAndSubmit() {
     backToUserMenu();
 }
 
-// ====== History ======
+// FIX #5: History — แสดงเฉพาะ ประเภท วันที่ เวลา พิกัด ไม่มีตัวเลขมั่วๆ
 async function loadHistory() {
     document.getElementById('history-container').innerHTML = '<div class="text-center text-gray-400 py-8"><i class="fa-solid fa-spinner fa-spin text-2xl"></i><p class="mt-2 text-sm">กำลังโหลด...</p></div>';
     try {
         const res = await callAPI('get_history', { employeeId: currentUser.id, limit: 15 });
         if (res.status !== 'success') throw new Error(res.message);
+        
         document.getElementById('month-count').innerHTML = `${res.monthCount} <span class="text-lg font-normal">ครั้ง</span>`;
         const container = document.getElementById('history-container');
+        
         if (!res.history || !res.history.length) { 
-            container.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">ยังไม่มีประวัติ</p>'; return; 
+            container.innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">ยังไม่มีประวัติ</p>'; 
+            return; 
         }
         
         container.innerHTML = res.history.map(h => {
-            const isIn = h.type === 'in';
-            // พยายามตัดข้อความ Address ให้เหลือแค่ ต. อ. จ. (ถ้าที่อยู่มีรูปแบบนี้) 
-            // หากรูปแบบเป็นอย่างอื่น จะแสดงตามปกติแต่จำกัดความยาวเพื่อความสวยงาม
-            let shortAddress = h.address || '';
-            const tambonIndex = shortAddress.indexOf('ต.');
-            if (tambonIndex !== -1) {
-                shortAddress = shortAddress.substring(tambonIndex);
+            const isIn = String(h.type).trim() === 'in';
+            const typeLabel = isIn ? 'เช็คอิน' : 'เช็คเอาท์';
+            const typeColor = isIn ? 'border-l-emerald-500' : 'border-l-orange-500';
+            const iconBg = isIn ? 'bg-emerald-100 text-emerald-600' : 'bg-orange-100 text-orange-600';
+            const iconName = isIn ? 'fa-arrow-right-to-bracket' : 'fa-arrow-right-from-bracket';
+            const timeColor = isIn ? 'text-emerald-600' : 'text-orange-600';
+
+            // FIX #5: แสดง address แบบสั้น ตัดเฉพาะส่วน ต. อ. จ.
+            let shortAddr = String(h.address || '');
+            // ถ้ามี "ต." ให้ตัดเอาแค่ส่วนนั้นไป
+            const tambonIdx = shortAddr.indexOf('ต.');
+            if (tambonIdx !== -1) {
+                shortAddr = shortAddr.substring(tambonIdx);
             }
-            
-            return `<div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 ${isIn?'border-l-emerald-500':'border-l-orange-500'} flex items-center justify-between">
-                <div class="flex items-center gap-3 overflow-hidden">
-                    <div class="w-10 h-10 ${isIn?'bg-emerald-100 text-emerald-600':'bg-orange-100 text-orange-600'} rounded-full flex items-center justify-center shrink-0">
-                        <i class="fa-solid ${isIn?'fa-arrow-right-to-bracket':'fa-arrow-right-from-bracket'}"></i>
-                    </div>
-                    <div class="min-w-0">
-                        <p class="font-bold text-sm text-gray-800">${isIn?'เช็คอิน':'เช็คเอาท์'} — ${h.date || ''}</p>
-                        <p class="text-xs text-gray-500 truncate" title="${h.address}">${shortAddress}</p>
+            // ถ้ายาวเกิน 50 ตัว ให้ตัด
+            if (shortAddr.length > 50) shortAddr = shortAddr.substring(0, 50) + '...';
+
+            // แสดงวันที่แบบ dd/MM/yyyy (h.date) และเวลา (h.time)
+            const dateStr = h.date ? String(h.date) : '';
+            const timeStr = h.time ? String(h.time) : '';
+
+            return `
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 ${typeColor}">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3 min-w-0 flex-1">
+                            <div class="w-10 h-10 ${iconBg} rounded-full flex items-center justify-center shrink-0">
+                                <i class="fa-solid ${iconName} text-sm"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="font-bold text-sm text-gray-800">${typeLabel}</p>
+                                <p class="text-xs text-gray-500 mt-0.5">${dateStr}${dateStr && timeStr ? ' · ' : ''}${timeStr}</p>
+                                ${shortAddr ? `<p class="text-xs text-gray-400 mt-0.5 truncate">${shortAddr}</p>` : ''}
+                            </div>
+                        </div>
+                        <span class="text-base font-bold ${timeColor} flex-shrink-0 ml-3">${timeStr}</span>
                     </div>
                 </div>
-                <span class="text-sm font-bold ${isIn?'text-emerald-600':'text-orange-600'} flex-shrink-0 ml-2">${h.time || ''}</span>
-            </div>`;
+            `;
         }).join('');
-    } catch(e) { document.getElementById('history-container').innerHTML = `<p class="text-center text-red-400 py-8 text-sm">โหลดไม่สำเร็จ: ${e.message}</p>`; }
+        
+    } catch(e) { 
+        document.getElementById('history-container').innerHTML = `<p class="text-center text-red-400 py-8 text-sm">โหลดไม่สำเร็จ: ${e.message}</p>`; 
+    }
 }
 
 // ====== Utils ======
@@ -916,5 +971,6 @@ window.addEventListener('load', () => {
     }
 });
 </script>
+
 </body>
 </html>
